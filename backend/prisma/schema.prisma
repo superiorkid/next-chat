@@ -18,14 +18,23 @@ model User {
   name          String
   email         String
   emailVerified Boolean   @default(false) @map("email_verified")
+
   image         String?
-  createdAt     DateTime  @default(now()) @map("created_at")
-  updatedAt     DateTime  @default(now()) @updatedAt @map("updated_at")
-  sessions      Session[]
-  accounts      Account[]
   bio           String?   @db.Text
+
   isOnline      Boolean   @default(false) @map("is_online")
   lastSeen      DateTime? @map("last_seen")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @default(now()) @updatedAt @map("updated_at")
+
+  sessions      Session[]
+  accounts      Account[]
+
+  sentMessages     Message[]          @relation("UserSentMessages")
+  chatParticipants ChatParticipant[]  @relation("UserChatParticipants")
+  messageStatuses  MessageStatus[]    @relation("UserMessageStatuses")
+  callsInitiated   Call[]             @relation("UserCallsInitiated")
+  callsReceived    CallParticipant[]  @relation("UserCallsReceived")
 
   @@unique([email])
   @@index([email])
@@ -78,4 +87,133 @@ model Verification {
 
   @@index([identifier])
   @@map("verifications")
+}
+
+model Chat {
+  id          String        @id @default(cuid())
+  name        String?       // used for groups only
+  isGroup     Boolean       @default(false) @map("is_group")
+  image       String?       // group chat avatar
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @updatedAt @map("updated_at")
+
+  participants ChatParticipant[]
+  messages     Message[]
+  calls Call[]
+
+  @@map("chats")
+}
+
+model ChatParticipant {
+  id        String   @id @default(cuid())
+  chatId    String @map("chat_id")
+  userId    String @map("user_id")
+  role      ChatRole @default(USER)
+  joinedAt  DateTime @default(now()) @map("joined_at")
+  lastReadMessageId String? @map("last_read_message_id")
+
+  chat Chat @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  user User @relation("UserChatParticipants", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([chatId, userId])
+  @@map("chat_participants")
+}
+
+enum ChatRole {
+  ADMIN
+  USER
+}
+
+model Message {
+  id          String        @id @default(cuid())
+  chatId      String @map("chat_id")
+  senderId    String @map("sender_id")
+  content     String?
+  type        MessageType   @default(TEXT)
+  mediaUrl    String? @map("media_url")
+  replyToId   String? @map("relpy_to_id")       // for threaded replies
+  createdAt   DateTime      @default(now()) @map("created_at")
+
+  chat   Chat   @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  sender User   @relation("UserSentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  statuses MessageStatus[]
+  replyTo Message? @relation("MessageReplies", fields: [replyToId], references: [id])
+  replies  Message[] @relation("MessageReplies")
+
+  @@index([chatId])
+  @@map("messages")
+}
+
+enum MessageType {
+  TEXT
+  IMAGE
+  VIDEO
+  AUDIO
+  FILE
+  SYSTEM
+}
+
+model MessageStatus {
+  id         String        @id @default(cuid())
+  messageId  String @map("message_id")
+  userId     String @map("user_id")
+  status     MessageDeliveryStatus @default(SENT)
+  updatedAt  DateTime      @updatedAt @map("updated_at")
+
+  message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  user    User    @relation("UserMessageStatuses", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([messageId, userId])
+  @@map("message_statuses")
+}
+
+enum MessageDeliveryStatus {
+  SENT
+  DELIVERED
+  READ
+}
+
+model Call {
+  id          String    @id @default(cuid())
+  initiatorId String @map("initiator_id")
+  type        CallType
+  startedAt   DateTime  @default(now()) @map("started_at")
+  endedAt     DateTime? @map("end_at")
+  status      CallStatus @default(ONGOING)
+  chatId      String? @map("chat_id")   // optional, link to chat
+
+  initiator User @relation("UserCallsInitiated", fields: [initiatorId], references: [id], onDelete: Cascade)
+  participants CallParticipant[]
+  chat Chat? @relation(fields: [chatId], references: [id], onDelete: SetNull)
+
+  @@map("calls")
+}
+
+model CallParticipant {
+  id       String   @id @default(cuid())
+  callId   String @map("call_id")
+  userId   String @map("user_id")
+  joinedAt DateTime @default(now()) @map("joined_at")
+  leftAt   DateTime? @map("left_at")
+  isMuted  Boolean  @default(false) @map("is_muted")
+  isVideoEnabled Boolean @default(true) @map("is_video_enabled")
+
+  call Call @relation(fields: [callId], references: [id], onDelete: Cascade)
+  user User @relation("UserCallsReceived", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([callId, userId])
+  @@map("call_participants")
+}
+
+
+enum CallType {
+  AUDIO
+  VIDEO
+}
+
+enum CallStatus {
+  ONGOING
+  MISSED
+  ENDED
+  REJECTED
 }

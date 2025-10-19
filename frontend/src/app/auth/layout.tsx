@@ -26,7 +26,7 @@ const AuthLayout = ({ children }: AuthLayoutProps) => {
       <div className="bg-muted relative hidden lg:block">
         <Image
           fill
-          src="https://images.unsplash.com/photo-1577563908411-5077b6dc7624?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&q=80&w=1470"
+          src="https://images.unsplash.com/photo-1760662084879-146e78d89119?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&q=80&w=687"
           alt="Image"
           className="absolute inset-0 h-full w-full object-cover dark:brightness-[0.2] dark:grayscale"
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
