@@ -28,4 +28,9 @@ export class UserController {
   async getUserProfile(@Param('userId') userId: string) {
     return this.userService.getUserById(userId);
   }
+
+  @Get(':userId/status')
+  async getUserStatus(@Param('userId') userId: string) {
+    return this.userService.getUserStatus(userId);
+  }
 }

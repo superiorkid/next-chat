@@ -13,6 +13,7 @@ import {
   AuthenticatedSocket,
   AuthWsMiddleware,
 } from 'src/common/middlewares/auth-ws.middleware';
+import { PresenceService } from 'src/modules/presence/presence.service';
 import { TokenRepository } from 'src/modules/user/token.repository';
 
 @WebSocketGateway({ cors: { origin: '*' } })
@@ -28,6 +29,7 @@ export class WebsocketGateway
     private readonly configService: ConfigService,
     private readonly jwtService: JwtService,
     private readonly tokenRepository: TokenRepository,
+    private readonly presenceService: PresenceService,
   ) {}
 
   afterInit(server: Server) {
@@ -42,18 +44,22 @@ export class WebsocketGateway
     this.logger.log('WebSocket server initialized');
   }
 
-  handleConnection(socket: AuthenticatedSocket) {
-    if (socket.user) {
-      this.logger.log(`User connected: ${socket.user.email}`);
-    } else {
-      this.logger.warn(`User not authenticated on socket ${socket.id}`);
+  async handleConnection(socket: AuthenticatedSocket) {
+    const user = socket.user;
+    if (!user) {
       socket.disconnect();
+      return;
     }
+
+    await this.presenceService.setOnline(user.sub, socket.id);
+    this.server.emit('user_online', { userId: user.sub });
   }
 
-  handleDisconnect(socket: AuthenticatedSocket) {
-    if (socket.user) {
-      this.logger.log(`User disconnected: ${socket.user.email}`);
-    }
+  async handleDisconnect(socket: AuthenticatedSocket) {
+    await this.presenceService.setOffline(socket.id);
+    this.server.emit('user_offline', {
+      userId: socket.user?.sub,
+      lastSeen: new Date(),
+    });
   }
 }

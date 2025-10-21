@@ -154,4 +154,41 @@ export class UserService {
       );
     }
   }
+
+  async getUserStatus(userId: string) {
+    try {
+      const user = await this.userRepository.findUnique({
+        where: { id: userId },
+        select: {
+          isOnline: true,
+          lastSeen: true,
+        },
+      });
+      if (!user) throw new NotFoundException('User not found');
+
+      return {
+        success: true,
+        message: 'User status retrieved successfully',
+        data: user,
+      };
+    } catch (error) {
+      const errorInfo = getErrorInfo(error);
+
+      this.logger.error(
+        {
+          id: 'get-user-status-error',
+          userId: userId,
+          error: errorInfo.message,
+          stack: errorInfo.stack,
+          timestamp: new Date().toISOString(),
+        },
+        `Failed to retrieve user status for ID: ${userId}`,
+      );
+
+      if (error instanceof NotFoundException) throw error;
+      throw new InternalServerErrorException(
+        'An unexpected error occurred while retrieving user status',
+      );
+    }
+  }
 }

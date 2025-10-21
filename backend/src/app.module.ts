@@ -10,6 +10,7 @@ import { ImageProcessModule } from './shared/image-process/image-process.module'
 import { APP_GUARD } from '@nestjs/core';
 import { JwtGuard } from './common/guards/jwt.guard';
 import { WebSocketModule } from './shared/websocket/websocket.module';
+import { PresenceModule } from './modules/presence/presence.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { WebSocketModule } from './shared/websocket/websocket.module';
     AuthenticationModule,
     UserModule,
     WebSocketModule,
+    PresenceModule,
   ],
   providers: [{ provide: APP_GUARD, useClass: JwtGuard }],
 })
