@@ -9,6 +9,7 @@ import { FileUploadModule } from './shared/file-upload/file-upload.module';
 import { ImageProcessModule } from './shared/image-process/image-process.module';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtGuard } from './common/guards/jwt.guard';
+import { WebSocketModule } from './shared/websocket/websocket.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { JwtGuard } from './common/guards/jwt.guard';
     ImageProcessModule,
     AuthenticationModule,
     UserModule,
+    WebSocketModule,
   ],
   providers: [{ provide: APP_GUARD, useClass: JwtGuard }],
 })
