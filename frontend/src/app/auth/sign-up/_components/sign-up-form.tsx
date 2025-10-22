@@ -1,21 +1,45 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
 import {
   Field,
   FieldDescription,
+  FieldError,
   FieldGroup,
   FieldLabel,
   FieldSeparator,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
+import { Controller, useForm } from "react-hook-form";
+import { signUpSchema, TSignUpSchema } from "../sign-up-schema";
 
 export function SignupForm({
   className,
   ...props
 }: React.ComponentProps<"form">) {
+  const form = useForm<TSignUpSchema>({
+    resolver: zodResolver(signUpSchema),
+    defaultValues: {
+      fullName: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+    },
+  });
+
+  const onSubmit = (values: TSignUpSchema) => {
+    console.log(values);
+  };
+
   return (
-    <form className={cn("flex flex-col gap-6", className)} {...props}>
+    <form
+      onSubmit={form.handleSubmit(onSubmit)}
+      className={cn("flex flex-col gap-6", className)}
+      {...props}
+    >
       <FieldGroup>
         <div className="flex flex-col items-center gap-1 text-center">
           <h1 className="text-2xl font-bold">Create your account</h1>
@@ -23,30 +47,88 @@ export function SignupForm({
             Fill in the form below to create your account
           </p>
         </div>
-        <Field>
-          <FieldLabel htmlFor="name">Full Name</FieldLabel>
-          <Input id="name" type="text" placeholder="John Doe" required />
-        </Field>
-        <Field>
-          <FieldLabel htmlFor="email">Email</FieldLabel>
-          <Input id="email" type="email" placeholder="m@example.com" required />
-          <FieldDescription>
-            We&apos;ll use this to contact you. We will not share your email
-            with anyone else.
-          </FieldDescription>
-        </Field>
-        <Field>
-          <FieldLabel htmlFor="password">Password</FieldLabel>
-          <Input id="password" type="password" required />
-          <FieldDescription>
-            Must be at least 8 characters long.
-          </FieldDescription>
-        </Field>
-        <Field>
-          <FieldLabel htmlFor="confirm-password">Confirm Password</FieldLabel>
-          <Input id="confirm-password" type="password" required />
-          <FieldDescription>Please confirm your password.</FieldDescription>
-        </Field>
+        <Controller
+          name="fullName"
+          control={form.control}
+          render={({ field, fieldState }) => (
+            <Field data-invalid={fieldState.invalid}>
+              <FieldLabel htmlFor="name">Full Name</FieldLabel>
+              <Input
+                {...field}
+                id="name"
+                type="text"
+                placeholder="John Doe"
+                aria-invalid={fieldState.invalid}
+                autoComplete="off"
+              />
+              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+            </Field>
+          )}
+        />
+
+        <Controller
+          name="email"
+          control={form.control}
+          render={({ field, fieldState }) => (
+            <Field data-invalid={fieldState.invalid}>
+              <FieldLabel htmlFor="email">Email</FieldLabel>
+              <Input
+                {...field}
+                id="email"
+                type="text"
+                aria-invalid={fieldState.invalid}
+                placeholder="john@example.com"
+                autoComplete="off"
+              />
+              <FieldDescription>
+                We&apos;ll use this to contact you. We will not share your email
+                with anyone else.
+              </FieldDescription>
+              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+            </Field>
+          )}
+        />
+
+        <Controller
+          name="password"
+          control={form.control}
+          render={({ field, fieldState }) => (
+            <Field data-invalid={fieldState.invalid}>
+              <FieldLabel htmlFor="password">Password</FieldLabel>
+              <Input
+                {...field}
+                id="password"
+                type="password"
+                placeholder="******"
+                aria-invalid={fieldState.invalid}
+              />
+              <FieldDescription>
+                Must be at least 8 characters long.
+              </FieldDescription>
+              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+            </Field>
+          )}
+        />
+
+        <Controller
+          name="confirmPassword"
+          control={form.control}
+          render={({ field, fieldState }) => (
+            <Field data-invalid={fieldState.invalid}>
+              <FieldLabel htmlFor="password">Confirm Password</FieldLabel>
+              <Input
+                {...field}
+                id="password"
+                type="password"
+                placeholder="******"
+                aria-invalid={fieldState.invalid}
+              />
+              <FieldDescription>Please confirm your password.</FieldDescription>
+              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+            </Field>
+          )}
+        />
+
         <Field>
           <Button type="submit">Create Account</Button>
         </Field>
