@@ -30,7 +30,7 @@ export default function RootLayout({
         )}
       >
         <QueryClientProvider>{children}</QueryClientProvider>
-        <Toaster />
+        <Toaster richColors expand />
       </body>
     </html>
   );

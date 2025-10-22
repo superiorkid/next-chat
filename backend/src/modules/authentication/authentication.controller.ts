@@ -5,10 +5,11 @@ import {
   Ip,
   Post,
   Req,
+  Res,
   UseGuards,
 } from '@nestjs/common';
 import { User } from '@prisma/client';
-import { type Request } from 'express';
+import { type Response, type Request } from 'express';
 import { Public } from 'src/common/decorators/public.decorator';
 import { LocalGuard } from '../../common/guards/local.guard';
 import { AuthenticationService } from './authentication.service';
@@ -21,12 +22,17 @@ export class AuthentionController {
   @Post('login')
   @UseGuards(LocalGuard)
   @Public()
-  async login(@Req() req: Request, @Ip() ip: string) {
-    return this.authenticationService.login(
-      req.user as User,
-      req.headers['user-agent'],
-      ip,
-    );
+  async login(
+    @Req() req: Request,
+    @Ip() ip: string,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    return this.authenticationService.login({
+      res,
+      user: req.user as User,
+      userAgent: req.headers['user-agent'],
+      ipAddress: ip,
+    });
   }
 
   @Post('register')

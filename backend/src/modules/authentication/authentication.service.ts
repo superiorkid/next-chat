@@ -15,6 +15,7 @@ import { SessionRepository } from 'src/modules/user/session.repository';
 import { TokenRepository } from 'src/modules/user/token.repository';
 import { UserRepository } from 'src/modules/user/user.repository';
 import { RegisterDto } from './dtos/register.dto';
+import { Response } from 'express';
 
 @Injectable()
 export class AuthenticationService {
@@ -37,7 +38,13 @@ export class AuthenticationService {
     return user;
   }
 
-  async login(user: User, userAgent?: string, ipAddress?: string) {
+  async login(params: {
+    res: Response;
+    user: User;
+    userAgent?: string;
+    ipAddress?: string;
+  }) {
+    const { user, ipAddress, userAgent, res } = params;
     const payload = { sub: user.id, email: user.email };
     const accessToken = await this.jwtService.signAsync(payload, {
       expiresIn: this.configService.get('ACCESS_TOKEN_JWT_EXPIRES_IN', '1d'),
@@ -67,6 +74,13 @@ export class AuthenticationService {
         data: { userId: user.id, userAgent, ipAddress },
       }),
     ]);
+
+    res.cookie(process.env.COOKIE_NAME as string, accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
 
     return {
       success: true,

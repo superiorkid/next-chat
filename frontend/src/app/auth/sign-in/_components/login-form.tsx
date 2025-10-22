@@ -15,6 +15,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
 import { Controller, useForm } from "react-hook-form";
 import { loginSchema, TLoginSchema } from "../login-schema";
+import { useLoginMutation } from "@/hooks/queries/auth";
+import { Spinner } from "@/components/ui/spinner";
 
 export function LoginForm({
   className,
@@ -28,8 +30,9 @@ export function LoginForm({
     },
   });
 
+  const { mutate, isPending } = useLoginMutation();
   const onSubmit = (values: TLoginSchema) => {
-    console.log(values);
+    mutate(values);
   };
 
   return (
@@ -49,6 +52,7 @@ export function LoginForm({
         <Controller
           name="email"
           control={form.control}
+          disabled={isPending}
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
               <FieldLabel htmlFor="email">Email</FieldLabel>
@@ -68,6 +72,7 @@ export function LoginForm({
         <Controller
           name="password"
           control={form.control}
+          disabled={isPending}
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
               <div className="flex items-center">
@@ -93,7 +98,16 @@ export function LoginForm({
         />
 
         <Field>
-          <Button type="submit">Login</Button>
+          <Button type="submit" disabled={isPending}>
+            {isPending ? (
+              <>
+                <Spinner />
+                Login
+              </>
+            ) : (
+              "Login"
+            )}
+          </Button>
         </Field>
         <FieldSeparator>Or continue with</FieldSeparator>
         <Field>

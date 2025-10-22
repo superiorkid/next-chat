@@ -10,6 +10,12 @@ export async function appConfig(app: INestApplication) {
   const logger = app.get(Logger);
   app.useLogger(logger);
   app.useGlobalFilters(new HttpExceptionFilter(logger));
+  app.enableCors({
+    origin: 'http://localhost:3000',
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  });
   app.useGlobalPipes(
     new ValidationPipe({
       transform: true,

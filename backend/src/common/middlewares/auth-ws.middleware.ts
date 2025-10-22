@@ -17,10 +17,11 @@ export const AuthWsMiddleware = (
   return (socket: AuthenticatedSocket, next) => {
     void (async () => {
       try {
-        const authHeader = socket.handshake.headers.authorization;
-        if (!authHeader) throw new Error('Authorization header is missing');
-
-        const token = authHeader.replace('Bearer ', '').trim();
+        const cookies = socket.handshake.headers.cookie?.split('; ');
+        const tokenCookie = cookies?.find((c) =>
+          c.startsWith(`${process.env.COOKIE_NAME}=`),
+        );
+        const token = tokenCookie ? tokenCookie.split('=')[1] : null;
         if (!token) throw new Error('Authorization token is missing');
 
         const payload = await jwtService.verifyAsync<AccessTokenPayloadType>(
