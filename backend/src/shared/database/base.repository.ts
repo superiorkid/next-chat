@@ -13,6 +13,7 @@ export abstract class BaseRepository<
     delete: (args: any) => Promise<TModel>;
     count: (args?: any) => Promise<number>;
     deleteMany: (args?: any) => Promise<{ count: number }>;
+    createMany: (args?: any) => Promise<{ count: number }>;
   },
 > {
   protected constructor(
@@ -66,5 +67,14 @@ export abstract class BaseRepository<
     args?: T,
   ): Promise<{ count: number }> {
     return this.delegate.deleteMany(args);
+  }
+
+  async createMany<
+    T extends Parameters<NonNullable<TDelegate['createMany']>>[0],
+  >(args: T): Promise<{ count: number }> {
+    if (!this.delegate.createMany) {
+      throw new Error('createMany is not implemented in this delegate.');
+    }
+    return this.delegate.createMany(args);
   }
 }

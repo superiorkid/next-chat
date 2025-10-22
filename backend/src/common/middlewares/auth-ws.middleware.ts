@@ -5,12 +5,9 @@ import { getErrorInfo } from 'src/lib/get-error-info';
 import { TokenRepository } from 'src/modules/user/token.repository';
 import { JwtStrategy } from '../strategies/jwt.strategy';
 import { AccessTokenPayloadType } from '../types/access-token-payload.type';
+import { AuthenticatedSocket } from '../types/authenticate-socket.type';
 
 type SocketMiddleware = (socket: Socket, next: (err?: Error) => void) => void;
-
-export interface AuthenticatedSocket extends Socket {
-  user?: AccessTokenPayloadType;
-}
 
 export const AuthWsMiddleware = (
   jwtService: JwtService,

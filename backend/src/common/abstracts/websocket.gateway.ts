@@ -9,27 +9,25 @@ import {
   WebSocketServer,
 } from '@nestjs/websockets';
 import { Server } from 'socket.io';
-import {
-  AuthenticatedSocket,
-  AuthWsMiddleware,
-} from 'src/common/middlewares/auth-ws.middleware';
+import { AuthWsMiddleware } from 'src/common/middlewares/auth-ws.middleware';
 import { PresenceService } from 'src/modules/presence/presence.service';
 import { TokenRepository } from 'src/modules/user/token.repository';
+import { AuthenticatedSocket } from '../types/authenticate-socket.type';
 
 @WebSocketGateway({ cors: { origin: '*' } })
-export class WebsocketGateway
+export abstract class WebsocketGateway
   implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
 {
-  private readonly logger = new Logger(WebSocketGateway.name);
+  protected readonly logger = new Logger(WebSocketGateway.name);
 
   @WebSocketServer()
   server: Server;
 
   constructor(
-    private readonly configService: ConfigService,
-    private readonly jwtService: JwtService,
-    private readonly tokenRepository: TokenRepository,
-    private readonly presenceService: PresenceService,
+    protected readonly configService: ConfigService,
+    protected readonly jwtService: JwtService,
+    protected readonly tokenRepository: TokenRepository,
+    protected readonly presenceService: PresenceService,
   ) {}
 
   afterInit(server: Server) {
