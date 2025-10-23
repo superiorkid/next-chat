@@ -10,6 +10,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { PlusIcon, SearchIcon } from "lucide-react";
 import React from "react";
 import ConversationCard from "./_components/conversation-card";
+import LogoutButton from "./_components/logout-button";
 
 interface ChatLayoutProps {
   children: React.ReactNode;
@@ -22,6 +23,9 @@ const ChatLayout = ({ children }: ChatLayoutProps) => {
         <div className="h-screen p-5">
           <div className="border h-full shadow-sm rounded-lg overflow-hidden">
             <div className="space-y-5 p-5">
+              <div>
+                <LogoutButton />
+              </div>
               <div className="flex justify-between items-center">
                 <h3 className="text-2xl font-bold">Chats</h3>
                 <DropdownMenu>

@@ -122,7 +122,8 @@ export class AuthenticationService {
     }
   }
 
-  async logout(userId: string) {
+  async logout(params: { userId: string; res: Response }) {
+    const { res, userId } = params;
     try {
       await Promise.all([
         this.tokenRepository.deleteMany({
@@ -137,6 +138,13 @@ export class AuthenticationService {
           },
         }),
       ]);
+
+      res.cookie(process.env.COOKIE_NAME as string, '', {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        expires: new Date(0), // expire immedietely
+      });
 
       return {
         success: true,

@@ -11,7 +11,7 @@ export async function appConfig(app: INestApplication) {
   app.useLogger(logger);
   app.useGlobalFilters(new HttpExceptionFilter(logger));
   app.enableCors({
-    origin: 'http://localhost:3000',
+    origin: process.env.FRONTEND_URL,
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization'],

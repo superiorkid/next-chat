@@ -9,7 +9,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { User } from '@prisma/client';
-import { type Response, type Request } from 'express';
+import { type Request, type Response } from 'express';
 import { Public } from 'src/common/decorators/public.decorator';
 import { LocalGuard } from '../../common/guards/local.guard';
 import { AuthenticationService } from './authentication.service';
@@ -42,8 +42,8 @@ export class AuthentionController {
   }
 
   @Delete('logout')
-  logout(@Req() req: Request) {
+  logout(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
     const userId = req.user?.['sub'] as string;
-    return this.authenticationService.logout(userId);
+    return this.authenticationService.logout({ userId, res });
   }
 }

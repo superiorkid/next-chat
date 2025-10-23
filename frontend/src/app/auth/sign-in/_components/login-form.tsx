@@ -10,18 +10,21 @@ import {
   FieldSeparator,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { Spinner } from "@/components/ui/spinner";
+import { useLoginMutation } from "@/hooks/queries/auth";
 import { cn } from "@/lib/utils";
+import { useSocketStore } from "@/providers/socket-store-provider";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
 import { Controller, useForm } from "react-hook-form";
 import { loginSchema, TLoginSchema } from "../login-schema";
-import { useLoginMutation } from "@/hooks/queries/auth";
-import { Spinner } from "@/components/ui/spinner";
 
 export function LoginForm({
   className,
   ...props
 }: React.ComponentProps<"form">) {
+  const connect = useSocketStore((store) => store.connect);
+
   const form = useForm<TLoginSchema>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -30,7 +33,12 @@ export function LoginForm({
     },
   });
 
-  const { mutate, isPending } = useLoginMutation();
+  const { mutate, isPending } = useLoginMutation({
+    onLoginSuccess: () => {
+      connect();
+      window.location.href = "/chat";
+    },
+  });
   const onSubmit = (values: TLoginSchema) => {
     mutate(values);
   };
