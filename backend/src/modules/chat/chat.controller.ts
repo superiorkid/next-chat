@@ -12,7 +12,7 @@ export class ChatController {
     private chatGateway: ChatGateway,
   ) {}
 
-  @Get('')
+  @Get()
   async getChatPartners(@Req() req: Request) {
     const userId = req.user?.['sub'] as string;
     return this.chatService.getChatPartners(userId);

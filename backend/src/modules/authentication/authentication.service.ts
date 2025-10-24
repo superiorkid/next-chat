@@ -166,6 +166,41 @@ export class AuthenticationService {
     }
   }
 
+  async getSession(userId: string) {
+    try {
+      const user = await this.databaseService.user.findUnique({
+        where: { id: userId },
+        omit: {
+          passwordHash: true,
+        },
+      });
+      if (!user) throw new NotFoundException('User not found');
+      return {
+        success: true,
+        message: '',
+        data: user,
+      };
+    } catch (error) {
+      const errorInfo = getErrorInfo(error);
+
+      this.logger.error(
+        {
+          userId,
+          id: 'get-session-error',
+          error: errorInfo.message,
+          stack: errorInfo.stack,
+          timestamp: new Date().toISOString(),
+        },
+        'Failed to get session',
+      );
+
+      if (error instanceof NotFoundException) throw error;
+      throw new InternalServerErrorException(
+        'Unable to retrieve user session. Please try again later.',
+      );
+    }
+  }
+
   private parseExpiresIn(expiresIn: string): number {
     const match = expiresIn.match(/^(\d+)([smhd])$/);
     if (!match) return 86400000;

@@ -1,9 +1,10 @@
 import { TLoginSchema } from "@/app/auth/sign-in/login-schema";
 import { clientAxios } from "@/lib/axios/client";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { AxiosError } from "axios";
 import { toast } from "sonner";
 import { TApiResponse } from "../../types/api-response-type";
+import { User } from "@/types/global-type";
 
 export function useLoginMutation(props?: { onLoginSuccess: () => void }) {
   const { onLoginSuccess } = props || {};
@@ -52,6 +53,16 @@ export function useLogoutMutation(props?: { onLogoutSuccess: () => void }) {
         description: "You have been logged out successfully.",
       });
       onLogoutSuccess?.();
+    },
+  });
+}
+
+export function useSession() {
+  return useQuery({
+    queryKey: ["session"],
+    queryFn: async () => {
+      const res = await clientAxios.get<TApiResponse<User>>("/v1/auth/session");
+      return res.data;
     },
   });
 }

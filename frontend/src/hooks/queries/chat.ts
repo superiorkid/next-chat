@@ -1,6 +1,7 @@
 import { clientAxios } from "@/lib/axios/client";
-import { chatKeys } from "@/lib/query-keys";
+import { chatKeys, messageKeys } from "@/lib/query-keys";
 import { TApiResponse } from "@/types/api-response-type";
+import { Message } from "@/types/global-type";
 import { TPartner } from "@/types/partner-type";
 import { useQuery } from "@tanstack/react-query";
 
@@ -14,12 +15,15 @@ export function usePartners() {
   });
 }
 
-export function useMessages() {
+export function useMessages(chatId: string) {
   return useQuery({
-    queryKey: chatKeys.allPartners(),
+    queryKey: messageKeys.allWithChatId(chatId),
     queryFn: async () => {
-      const res = await clientAxios.get<TApiResponse<TPartner[]>>("/v1/chats");
+      const res = await clientAxios.get<TApiResponse<Message[]>>(
+        `/v1/chats/${chatId}/messages`
+      );
       return res.data;
     },
+    enabled: !!chatId,
   });
 }

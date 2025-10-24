@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Delete,
+  Get,
   Ip,
   Post,
   Req,
@@ -39,6 +40,12 @@ export class AuthentionController {
   @Public()
   async register(@Body() registerDto: RegisterDto) {
     return this.authenticationService.register(registerDto);
+  }
+
+  @Get('session')
+  async getSession(@Req() req: Request) {
+    const userId = req.user?.['sub'] as string;
+    return this.authenticationService.getSession(userId);
   }
 
   @Delete('logout')
