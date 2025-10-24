@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { UserRepository } from '../user/user.repository';
+import { DatabaseService } from 'src/shared/database/database.service';
 
 @Injectable()
 export class PresenceService {
@@ -7,7 +7,7 @@ export class PresenceService {
   private readonly socketToUser = new Map<string, string>();
   private readonly userToSockets = new Map<string, Set<string>>();
 
-  constructor(private readonly userRepository: UserRepository) {}
+  constructor(private readonly databaseService: DatabaseService) {}
 
   async setOnline(userId: string, socketId: string) {
     this.socketToUser.set(socketId, userId);
@@ -19,7 +19,7 @@ export class PresenceService {
     this.userToSockets.get(userId)!.add(socketId);
 
     if (this.userToSockets.get(userId)!.size === 1) {
-      await this.userRepository.update({
+      await this.databaseService.user.update({
         where: { id: userId },
         data: { isOnline: true },
       });
@@ -41,7 +41,7 @@ export class PresenceService {
     if (sockets.size === 0) {
       this.userToSockets.delete(userId);
 
-      await this.userRepository.update({
+      await this.databaseService.user.update({
         where: { id: userId },
         data: { isOnline: false, lastSeen: new Date() },
       });

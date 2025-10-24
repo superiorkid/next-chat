@@ -4,14 +4,14 @@ import { PassportStrategy } from '@nestjs/passport';
 import { TokenType } from '@prisma/client';
 import { type Request } from 'express';
 import { ExtractJwt, JwtFromRequestFunction, Strategy } from 'passport-jwt';
-import { TokenRepository } from 'src/modules/user/token.repository';
+import { DatabaseService } from 'src/shared/database/database.service';
 import { AccessTokenPayloadType } from '../types/access-token-payload.type';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(
     private configService: ConfigService,
-    private tokenRepository: TokenRepository,
+    private databaseService: DatabaseService,
   ) {
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([
@@ -39,7 +39,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   };
 
   async validate(payload: AccessTokenPayloadType) {
-    const token = await this.tokenRepository.findFirst({
+    const token = await this.databaseService.token.findFirst({
       where: { userId: payload.sub, type: TokenType.ACCESS },
     });
     if (!token) throw new UnauthorizedException();

@@ -11,8 +11,8 @@ import {
 import { Server } from 'socket.io';
 import { AuthWsMiddleware } from 'src/common/middlewares/auth-ws.middleware';
 import { PresenceService } from 'src/modules/presence/presence.service';
-import { TokenRepository } from 'src/modules/user/token.repository';
 import { AuthenticatedSocket } from '../types/authenticate-socket.type';
+import { DatabaseService } from 'src/shared/database/database.service';
 
 @WebSocketGateway({ cors: { origin: '*' } })
 export abstract class WebsocketGateway
@@ -26,8 +26,8 @@ export abstract class WebsocketGateway
   constructor(
     protected readonly configService: ConfigService,
     protected readonly jwtService: JwtService,
-    protected readonly tokenRepository: TokenRepository,
     protected readonly presenceService: PresenceService,
+    protected readonly databaseService: DatabaseService,
   ) {}
 
   afterInit(server: Server) {
@@ -35,7 +35,7 @@ export abstract class WebsocketGateway
       AuthWsMiddleware(
         this.jwtService,
         this.configService,
-        this.tokenRepository,
+        this.databaseService,
       ),
     );
 

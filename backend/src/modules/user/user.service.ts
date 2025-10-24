@@ -5,22 +5,22 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { getErrorInfo } from 'src/lib/get-error-info';
+import { DatabaseService } from 'src/shared/database/database.service';
 import { FileUploadService } from 'src/shared/file-upload/file-upload.service';
 import { UpdateUserDto } from './dtos/update-user.dto';
-import { UserRepository } from './user.repository';
 
 @Injectable()
 export class UserService {
   private readonly logger = new Logger(UserService.name);
 
   constructor(
-    private userRepository: UserRepository,
+    private databaseService: DatabaseService,
     private fileUploadService: FileUploadService,
   ) {}
 
   async getCurrentUserProfile(userId: string) {
     try {
-      const user = await this.userRepository.findUnique({
+      const user = await this.databaseService.user.findUnique({
         where: { id: userId },
       });
       if (!user) throw new NotFoundException('User not found');
@@ -58,7 +58,7 @@ export class UserService {
     const { updateUserDto, userId } = params;
     const { bio, name, newImage, removedImage } = updateUserDto;
 
-    const user = await this.userRepository.findUnique({
+    const user = await this.databaseService.user.findUnique({
       where: { id: userId },
     });
     if (!user) throw new NotFoundException('User not found');
@@ -91,7 +91,7 @@ export class UserService {
         this.logger.log(`Uploaded new profile image for user: ${userId}`);
       }
 
-      await this.userRepository.update({
+      await this.databaseService.user.update({
         where: { id: userId },
         data: {
           name,
@@ -124,7 +124,7 @@ export class UserService {
 
   async getUserById(userId: string) {
     try {
-      const user = await this.userRepository.findUnique({
+      const user = await this.databaseService.user.findUnique({
         where: { id: userId },
       });
       if (!user) throw new NotFoundException('User not found');
@@ -157,7 +157,7 @@ export class UserService {
 
   async getUserStatus(userId: string) {
     try {
-      const user = await this.userRepository.findUnique({
+      const user = await this.databaseService.user.findUnique({
         where: { id: userId },
         select: {
           isOnline: true,

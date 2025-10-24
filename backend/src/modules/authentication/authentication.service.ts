@@ -10,27 +10,26 @@ import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { TokenType, User } from '@prisma/client';
 import argon2 from 'argon2';
-import { getErrorInfo } from 'src/lib/get-error-info';
-import { SessionRepository } from 'src/modules/user/session.repository';
-import { TokenRepository } from 'src/modules/user/token.repository';
-import { UserRepository } from 'src/modules/user/user.repository';
-import { RegisterDto } from './dtos/register.dto';
 import { Response } from 'express';
+import { getErrorInfo } from 'src/lib/get-error-info';
+import { DatabaseService } from 'src/shared/database/database.service';
+import { RegisterDto } from './dtos/register.dto';
 
 @Injectable()
 export class AuthenticationService {
   private readonly logger = new Logger(AuthenticationService.name);
 
   constructor(
-    private userRepository: UserRepository,
-    private tokenRepository: TokenRepository,
-    private sessionRepository: SessionRepository,
     private jwtService: JwtService,
     private configService: ConfigService,
+    private databaseService: DatabaseService,
   ) {}
 
   async validateUser(email: string, password: string) {
-    const user = await this.userRepository.findUnique({ where: { email } });
+    const user = await this.databaseService.user.findUnique({
+      where: { email },
+    });
+
     if (!user) throw new NotFoundException('User not found');
     const passwordMatches = await argon2.verify(user.passwordHash, password);
     if (!passwordMatches)
@@ -62,7 +61,7 @@ export class AuthenticationService {
     );
 
     await Promise.all([
-      this.tokenRepository.create({
+      this.databaseService.token.create({
         data: {
           userId: user.id,
           token: accessToken,
@@ -70,7 +69,7 @@ export class AuthenticationService {
           expiresAt,
         },
       }),
-      this.sessionRepository.create({
+      this.databaseService.session.create({
         data: { userId: user.id, userAgent, ipAddress },
       }),
     ]);
@@ -91,14 +90,14 @@ export class AuthenticationService {
 
   async register(registerDto: RegisterDto) {
     const { email, name, password } = registerDto;
-    const existingUser = await this.userRepository.findUnique({
+    const existingUser = await this.databaseService.user.findUnique({
       where: { email },
     });
     if (existingUser) throw new ConflictException('Email already exists');
     const hashedPassword = await argon2.hash(password);
 
     try {
-      await this.userRepository.create({
+      await this.databaseService.user.create({
         data: { name, email, passwordHash: hashedPassword },
       });
       return { success: true, message: 'User registered successfully' };
@@ -126,13 +125,13 @@ export class AuthenticationService {
     const { res, userId } = params;
     try {
       await Promise.all([
-        this.tokenRepository.deleteMany({
+        this.databaseService.token.deleteMany({
           where: {
             userId,
             type: 'ACCESS',
           },
         }),
-        this.sessionRepository.deleteMany({
+        this.databaseService.session.deleteMany({
           where: {
             userId,
           },

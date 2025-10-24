@@ -1,9 +1,9 @@
 import { Body, Controller, Get, Param, Post, Req } from '@nestjs/common';
 import { type Request } from 'express';
+import { ChatGateway } from './chat.gateway';
 import { ChatService } from './chat.service';
 import { SendMessageDto } from './dto/send-message.dto';
 import { StartConversationDto } from './dto/start-conversation.dto';
-import { ChatGateway } from './chat.gateway';
 
 @Controller({ version: '1', path: 'chats' })
 export class ChatController {
@@ -11,6 +11,12 @@ export class ChatController {
     private chatService: ChatService,
     private chatGateway: ChatGateway,
   ) {}
+
+  @Get('')
+  async getChatPartners(@Req() req: Request) {
+    const userId = req.user?.['sub'] as string;
+    return this.chatService.getChatPartners(userId);
+  }
 
   @Post('start')
   async startConversation(

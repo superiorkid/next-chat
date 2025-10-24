@@ -2,7 +2,7 @@ import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { Socket } from 'socket.io';
 import { getErrorInfo } from 'src/lib/get-error-info';
-import { TokenRepository } from 'src/modules/user/token.repository';
+import { DatabaseService } from 'src/shared/database/database.service';
 import { JwtStrategy } from '../strategies/jwt.strategy';
 import { AccessTokenPayloadType } from '../types/access-token-payload.type';
 import { AuthenticatedSocket } from '../types/authenticate-socket.type';
@@ -12,7 +12,7 @@ type SocketMiddleware = (socket: Socket, next: (err?: Error) => void) => void;
 export const AuthWsMiddleware = (
   jwtService: JwtService,
   configService: ConfigService,
-  tokenRepository: TokenRepository,
+  databaseService: DatabaseService,
 ): SocketMiddleware => {
   return (socket: AuthenticatedSocket, next) => {
     void (async () => {
@@ -34,7 +34,7 @@ export const AuthWsMiddleware = (
           },
         );
 
-        const strategy = new JwtStrategy(configService, tokenRepository);
+        const strategy = new JwtStrategy(configService, databaseService);
         const user = await strategy.validate(payload);
 
         if (!user) throw new Error('User not found or invalid token');

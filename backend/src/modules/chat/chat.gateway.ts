@@ -9,21 +9,19 @@ import {
 import { WebsocketGateway } from 'src/common/abstracts/websocket.gateway';
 import { type AuthenticatedSocket } from 'src/common/types/authenticate-socket.type';
 import { PresenceService } from '../presence/presence.service';
-import { TokenRepository } from '../user/token.repository';
-import { ChatParticipantRepository } from './chat-participant.repository';
 import { ChatService } from './chat.service';
+import { DatabaseService } from 'src/shared/database/database.service';
 
 @WebSocketGateway({ cors: { origin: '*' } })
 export class ChatGateway extends WebsocketGateway {
   constructor(
     configService: ConfigService,
     jwtService: JwtService,
-    tokenRepository: TokenRepository,
     presenceService: PresenceService,
+    databaseService: DatabaseService,
     private chatService: ChatService,
-    private chatParticipantRepository: ChatParticipantRepository,
   ) {
-    super(configService, jwtService, tokenRepository, presenceService);
+    super(configService, jwtService, presenceService, databaseService);
   }
 
   async handleConnection(socket: AuthenticatedSocket): Promise<void> {
@@ -32,7 +30,7 @@ export class ChatGateway extends WebsocketGateway {
     const userId = socket.user?.sub;
     if (!userId) return;
 
-    const userChats = await this.chatParticipantRepository.findMany({
+    const userChats = await this.databaseService.chatParticipant.findMany({
       where: { userId },
       select: { chatId: true },
     });
