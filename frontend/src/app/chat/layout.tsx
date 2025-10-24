@@ -1,73 +1,40 @@
-import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { PlusIcon, SearchIcon } from "lucide-react";
+import { createServerAxios } from "@/lib/axios/server";
+import { getQueryClient } from "@/lib/query-client";
+import { chatKeys } from "@/lib/query-keys";
+import { TApiResponse } from "@/types/api-response-type";
+import { TPartner } from "@/types/partner-type";
+import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import React from "react";
-import ConversationCard from "./_components/conversation-card";
-import LogoutButton from "./_components/logout-button";
+import ChatSidebar from "./_components/chat-sidebar";
 
 interface ChatLayoutProps {
   children: React.ReactNode;
 }
 
-const ChatLayout = ({ children }: ChatLayoutProps) => {
-  return (
-    <div>
-      <div className="fixed left-0 top-0 z-40 h-screen w-[384px] -translate-x-full sm:translate-x-0">
-        <div className="h-screen p-5">
-          <div className="border h-full shadow-sm rounded-lg overflow-hidden">
-            <div className="space-y-5 p-5">
-              <div>
-                <LogoutButton />
-              </div>
-              <div className="flex justify-between items-center">
-                <h3 className="text-2xl font-bold">Chats</h3>
-                <DropdownMenu>
-                  <DropdownMenuTrigger>
-                    <Button
-                      size="icon"
-                      variant="outline"
-                      className="rounded-full cursor-pointer"
-                    >
-                      <PlusIcon strokeWidth={2} />
-                      <span className="sr-only"></span>
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem>New chat</DropdownMenuItem>
-                    <DropdownMenuItem>Create group</DropdownMenuItem>
-                    <DropdownMenuItem>Add contact</DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-              <div className="relative">
-                <Input
-                  className="peer ps-9 border-zinc-100 rounded-sm"
-                  placeholder="Search..."
-                  type="text"
-                />
-                <div className="pointer-events-none absolute inset-y-0 start-0 flex items-center justify-center ps-3 text-muted-foreground/80 peer-disabled:opacity-50">
-                  <SearchIcon size={16} />
-                </div>
-              </div>
-            </div>
-            <ScrollArea className="h-full divide-y">
-              {Array.from({ length: 35 }).map((_, index) => (
-                <ConversationCard key={index} />
-              ))}
-            </ScrollArea>
-          </div>
-        </div>
-      </div>
+const ChatLayout = async ({ children }: ChatLayoutProps) => {
+  const httpClient = await createServerAxios();
+  const queryClient = getQueryClient();
 
-      <div className="sm:ml-[395px] overflow-hidden">{children}</div>
-    </div>
+  await queryClient.prefetchQuery({
+    queryKey: chatKeys.allPartners(),
+    queryFn: async () => {
+      const res = await httpClient.get<TApiResponse<TPartner[]>>("/v1/chats");
+      return res.data;
+    },
+  });
+
+  console.log(
+    "Auth header:",
+    httpClient.defaults.headers.common["Authorization"]
+  );
+
+  return (
+    <HydrationBoundary state={dehydrate(queryClient)}>
+      <div>
+        <ChatSidebar />
+        <div className="sm:ml-[395px] overflow-hidden">{children}</div>
+      </div>
+    </HydrationBoundary>
   );
 };
 

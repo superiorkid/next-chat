@@ -4,9 +4,9 @@ import QueryClientProvider from "@/providers/query-client-provider";
 import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 
+import { SocketInitializer } from "@/providers/socket-initializer";
 import { SocketStoreProvider } from "@/providers/socket-store-provider";
 import "./globals.css";
-import { SocketInitializer } from "@/providers/socket-initializer";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -31,11 +31,13 @@ export default function RootLayout({
           geistSans.className
         )}
       >
-        <SocketStoreProvider>
-          <SocketInitializer />
-          <QueryClientProvider>{children}</QueryClientProvider>
-        </SocketStoreProvider>
-        <Toaster richColors expand />
+        <QueryClientProvider>
+          <SocketStoreProvider>
+            <SocketInitializer />
+            {children}
+          </SocketStoreProvider>
+          <Toaster richColors expand />
+        </QueryClientProvider>
       </body>
     </html>
   );

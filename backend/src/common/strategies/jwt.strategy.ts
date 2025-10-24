@@ -29,12 +29,15 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   private static extractJWTFromCookie: JwtFromRequestFunction = (
     req: Request,
   ): string | null => {
+    if (!req.headers.cookie) return null;
+
     const cookieName = process.env.COOKIE_NAME || '';
-    const rawCookie = req.headers.cookie as string;
+    const rawCookie = req.headers.cookie;
     const escapedCookieName = cookieName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const regex = new RegExp(`${escapedCookieName}=([^;]+)`);
     const match = rawCookie.match(regex);
     const token = match ? match[1] : null;
+
     return token;
   };
 
