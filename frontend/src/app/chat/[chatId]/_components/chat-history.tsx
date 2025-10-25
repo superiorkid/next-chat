@@ -1,17 +1,15 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
-import { Textarea } from "@/components/ui/textarea";
 import { useMessages } from "@/hooks/queries/chat";
 import { groupMessagesByDate } from "@/lib/utils";
 import { useSocketStore } from "@/providers/socket-store-provider";
 import { Message } from "@/types/global-type";
 import { format } from "date-fns";
-import { MicIcon, PaperclipIcon, SmileIcon } from "lucide-react";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import ChatHeader from "./chat-header";
 import ChatMessage from "./chat-message";
+import MessageInput from "./message-input";
 
 interface ChatComponentProps {
   chatId: string;
@@ -27,8 +25,8 @@ const ChatComponent = ({ chatId }: ChatComponentProps) => {
 
   const [message, setMessage] = useState("");
 
-  const scrollRef = useRef<HTMLDivElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const scrollRef = useRef<HTMLDivElement | null>(null);
 
   useLayoutEffect(() => {
     setIsPending(true);
@@ -106,7 +104,6 @@ const ChatComponent = ({ chatId }: ChatComponentProps) => {
                     </span>
                   </div>
                   {msgs.map((msg, i) => {
-                    const prev = msgs[i - 1];
                     const next = msgs[i + 1];
                     const showAvatar =
                       !next || next.sender?.id !== msg.sender?.id;
@@ -126,39 +123,13 @@ const ChatComponent = ({ chatId }: ChatComponentProps) => {
         </div>
       </div>
 
-      <div className="py-4 px-1 bg-background">
-        <div className="relative">
-          <Textarea
-            ref={textareaRef}
-            placeholder="Enter message..."
-            className="field-sizing-content max-h-40 min-h-14 resize-none py-1.75 pe-56"
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            onKeyDown={handleKeyDown}
-          />
-          <div className="absolute right-3 bottom-3">
-            <div className="flex items-center space-x-2.5">
-              <Button variant="outline" size="icon-sm">
-                <SmileIcon />
-              </Button>
-              <Button variant="outline" size="icon-sm">
-                <PaperclipIcon />
-              </Button>
-              <Button variant="outline" size="icon-sm">
-                <MicIcon />
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={sendMessage}
-                disabled={!message.trim()}
-              >
-                Send
-              </Button>
-            </div>
-          </div>
-        </div>
-      </div>
+      <MessageInput
+        message={message}
+        setMessage={setMessage}
+        sendMessage={sendMessage}
+        onKeyDown={handleKeyDown}
+        textareaRef={textareaRef}
+      />
     </div>
   );
 };

@@ -23,16 +23,14 @@ export const createSocketStore = (
   return createStore<SocketStore>()((set, get) => ({
     ...initState,
     connect: () => {
-      if (get().socket?.connect) return; // avoid duplicate connection
+      const existing = get().socket;
+      if (existing && existing.connected) return;
 
       const socket = createSocket();
-      socket.on("connect", () => {
-        console.log("Socket connected:", socket.id);
-      });
-
-      socket.on("disconnect", (reason) => {
-        console.warn("Socket disconnected:", reason);
-      });
+      socket.on("connect", () => console.log("Socket connected:", socket.id));
+      socket.on("disconnect", (reason) =>
+        console.warn("Socket disconnected:", reason)
+      );
 
       set({ socket });
     },

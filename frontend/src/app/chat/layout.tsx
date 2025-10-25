@@ -2,11 +2,11 @@ import { createServerAxios } from "@/lib/axios/server";
 import { getQueryClient } from "@/lib/query-client";
 import { chatKeys } from "@/lib/query-keys";
 import { TApiResponse } from "@/types/api-response-type";
+import { User } from "@/types/global-type";
 import { TPartner } from "@/types/partner-type";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import React from "react";
 import ChatSidebar from "./_components/chat-sidebar";
-import { User } from "@/types/global-type";
 
 interface ChatLayoutProps {
   children: React.ReactNode;

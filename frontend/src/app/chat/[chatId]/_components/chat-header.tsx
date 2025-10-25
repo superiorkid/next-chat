@@ -17,8 +17,8 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { usePartner } from "@/hooks/queries/chat";
-import { usePresence } from "@/hooks/use-presence";
 import { cn, getInitial } from "@/lib/utils";
+import { usePresenceStore } from "@/providers/presence-store-provider";
 import { formatDistance } from "date-fns";
 import { EllipsisIcon, GithubIcon, PhoneIcon, VideoIcon } from "lucide-react";
 
@@ -28,8 +28,12 @@ interface ChatHeaderProps {
 
 const ChatHeader = ({ chatId }: ChatHeaderProps) => {
   const { data: partner, isPending } = usePartner({ chatId });
-  const { isOnline, lastSeen } = usePresence(
-    partner?.data?.partnerId as string
+
+  const isOnline = usePresenceStore((store) =>
+    store.onlineUsers.includes(partner?.data?.partnerId as string)
+  );
+  const lastSeen = usePresenceStore(
+    (store) => store.lastSeenMap[partner?.data?.partnerId as string]
   );
 
   if (isPending) {

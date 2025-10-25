@@ -1,11 +1,13 @@
 import { Toaster } from "@/components/ui/sonner";
 import { cn } from "@/lib/utils";
 import QueryClientProvider from "@/providers/query-client-provider";
-import type { Metadata } from "next";
-import { Geist } from "next/font/google";
-
 import { SocketInitializer } from "@/providers/socket-initializer";
 import { SocketStoreProvider } from "@/providers/socket-store-provider";
+import type { Metadata } from "next";
+import { Geist } from "next/font/google";
+import PresenceListener from "./chat/_components/presence-listener";
+import PresenceStoreProvider from "@/providers/presence-store-provider";
+
 import "./globals.css";
 
 const geistSans = Geist({
@@ -33,8 +35,11 @@ export default function RootLayout({
       >
         <QueryClientProvider>
           <SocketStoreProvider>
-            <SocketInitializer />
-            {children}
+            <PresenceStoreProvider>
+              <SocketInitializer />
+              <PresenceListener />
+              {children}
+            </PresenceStoreProvider>
           </SocketStoreProvider>
           <Toaster richColors expand />
         </QueryClientProvider>

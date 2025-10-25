@@ -1,6 +1,9 @@
+"use client";
+
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { getInitial } from "@/lib/utils";
+import { cn, getInitial } from "@/lib/utils";
+import { usePresenceStore } from "@/providers/presence-store-provider";
 import { TPartner } from "@/types/partner-type";
 import { formatDistance } from "date-fns";
 import Link from "next/link";
@@ -10,6 +13,10 @@ interface ConversationCardProps {
 }
 
 const ConversationCard = ({ partner }: ConversationCardProps) => {
+  const isOnline = usePresenceStore((store) =>
+    store.onlineUsers.includes(partner.partnerId as string)
+  );
+
   return (
     <div className="text-sm px-5 py-4 hover:bg-zinc-200/70 cursor-pointer border-b last:border-b-0 relative">
       <Link href={`/chat/${partner.chatId}`} className="flex gap-2.5">
@@ -20,8 +27,13 @@ const ConversationCard = ({ partner }: ConversationCardProps) => {
               {getInitial(partner.name)}
             </AvatarFallback>
           </Avatar>
-          <span className="absolute -end-0.5 -bottom-0.5 size-3 rounded-full border-2 border-background bg-emerald-500">
-            <span className="sr-only">Online</span>
+          <span
+            className={cn(
+              "absolute -end-0.5 -bottom-0.5 size-3 rounded-full border-2 border-background bg-muted-foreground",
+              isOnline && "bg-emerald-500"
+            )}
+          >
+            <span className="sr-only">{isOnline ? "Online" : "Offline"}</span>
           </span>
         </div>
         <div className="space-y-0.5 w-full">
