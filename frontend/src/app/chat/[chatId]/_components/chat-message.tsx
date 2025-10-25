@@ -1,8 +1,8 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useSession } from "@/hooks/queries/auth";
-import { getInitial } from "@/lib/utils";
+import { cn, getInitial } from "@/lib/utils";
 import { Message } from "@/types/global-type";
-import { formatDistance } from "date-fns";
+import { format } from "date-fns";
 
 interface ChatMessageProps {
   message: Message;
@@ -14,7 +14,7 @@ const ChatMessage = ({ message }: ChatMessageProps) => {
   const isMe = message.sender?.email === session?.data?.email;
 
   return (
-    <div className={`flex gap-3 mb-6 ${isMe ? "flex-row-reverse" : ""}`}>
+    <div className={cn("flex gap-3 mb-1", isMe && "flex-row-reverse")}>
       {!isMe && (
         <Avatar className="size-8">
           <AvatarImage
@@ -28,27 +28,25 @@ const ChatMessage = ({ message }: ChatMessageProps) => {
       )}
 
       <div
-        className={`flex flex-col ${
-          isMe ? "items-end" : "items-start"
-        } max-w-[70%]`}
+        className={cn(
+          "flex flex-col items-start max-w-[70%]",
+          isMe && "items-end"
+        )}
       >
         {message.content && (
           <div
-            className={`rounded-lg px-4 py-2 ${
-              isMe
-                ? "bg-blue-600 text-white rounded-br-none"
-                : "bg-gray-100 text-gray-900 rounded-bl-none"
-            }`}
+            className={cn(
+              "flex gap-4 items-center rounded-lg px-4 py-2 rounded-bl-none bg-zinc-100",
+              isMe && "bg-green-200/40 text-foreground-br-none"
+            )}
           >
             <p className="text-sm">{message.content}</p>
             <div
-              className={`text-xs mt-1 ${
-                isMe ? "text-blue-100" : "text-gray-500"
-              }`}
+              className={cn(
+                "text-xs mt-1 text-muted-foreground font-medium text-nowrap self-end"
+              )}
             >
-              {formatDistance(new Date(message.createdAt), new Date(), {
-                addSuffix: true,
-              })}
+              {format(new Date(message.createdAt), "HH:mm a")}
             </div>
           </div>
         )}
