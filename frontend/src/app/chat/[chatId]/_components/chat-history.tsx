@@ -19,7 +19,8 @@ interface ChatComponentProps {
 
 const ChatComponent = ({ chatId }: ChatComponentProps) => {
   const socket = useSocketStore((store) => store.socket);
-  const { data, isPending } = useMessages(chatId);
+  const { data } = useMessages(chatId);
+  const [isPending, setIsPending] = useState<boolean>(false);
 
   const [messages, setMessages] = useState<Message[]>([]);
   const groupedMessages = groupMessagesByDate(messages);
@@ -30,10 +31,12 @@ const ChatComponent = ({ chatId }: ChatComponentProps) => {
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
   useLayoutEffect(() => {
+    setIsPending(true);
     if (data?.data) {
       setMessages(data.data);
       scrollToBottom();
     }
+    setIsPending(false);
   }, [data]);
 
   useEffect(() => {
@@ -80,7 +83,7 @@ const ChatComponent = ({ chatId }: ChatComponentProps) => {
 
   return (
     <div className="flex flex-col h-dvh">
-      <ChatHeader />
+      <ChatHeader chatId={chatId} />
 
       <div className="flex-1 overflow-hidden mt-4">
         <div ref={scrollRef} className="h-full pr-3.5 overflow-y-auto">
@@ -97,7 +100,7 @@ const ChatComponent = ({ chatId }: ChatComponentProps) => {
             <div className="space-y-4">
               {Object.entries(groupedMessages).map(([date, msgs]) => (
                 <div key={date}>
-                  <div className="text-center text-xs text-muted-foreground my-2">
+                  <div className="text-center text-xs text-muted-foreground my-2 sticky top-0 font-medium">
                     {format(new Date(date), "EEEE, MMM d yyyy")}
                   </div>
                   {msgs.map((msg, i) => {

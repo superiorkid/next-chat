@@ -4,6 +4,8 @@ export type TPartner = {
   name: string;
   image?: string;
   partnerId?: string;
+  isOnline?: boolean;
+  lastSeen?: Date;
   lastMessage: {
     content: string;
     createdAt: Date;

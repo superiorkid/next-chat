@@ -1,8 +1,10 @@
 import { createServerAxios } from "@/lib/axios/server";
 import { getQueryClient } from "@/lib/query-client";
-import { messageKeys } from "@/lib/query-keys";
+import { chatKeys, messageKeys } from "@/lib/query-keys";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import ChatComponent from "./_components/chat-history";
+import { TApiResponse } from "@/types/api-response-type";
+import { TPartner } from "@/types/partner-type";
 
 interface ChatHistoryPageProps {
   params: Promise<{ chatId: string }>;
@@ -14,13 +16,24 @@ const ChatHistoryPage = async ({ params }: ChatHistoryPageProps) => {
   const httpClient = await createServerAxios();
   const queryClient = getQueryClient();
 
-  await queryClient.prefetchQuery({
-    queryKey: messageKeys.allWithChatId(chatId),
-    queryFn: async () => {
-      const res = await httpClient.get(`/v1/chats/${chatId}/messages`);
-      return res.data;
-    },
-  });
+  await Promise.all([
+    queryClient.prefetchQuery({
+      queryKey: messageKeys.allWithChatId(chatId),
+      queryFn: async () => {
+        const res = await httpClient.get(`/v1/chats/${chatId}/messages`);
+        return res.data;
+      },
+    }),
+    queryClient.prefetchQuery({
+      queryKey: chatKeys.detailPartner(chatId),
+      queryFn: async () => {
+        const res = await httpClient.get<TApiResponse<TPartner>>(
+          `/v1/chats/${chatId}`
+        );
+        return res.data;
+      },
+    }),
+  ]);
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>

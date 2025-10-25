@@ -15,6 +15,19 @@ export function usePartners() {
   });
 }
 
+export function usePartner(params: { chatId: string }) {
+  return useQuery({
+    queryKey: chatKeys.detailPartner(params.chatId),
+    queryFn: async () => {
+      const res = await clientAxios.get<TApiResponse<TPartner>>(
+        `/v1/chats/${params.chatId}`
+      );
+      return res.data;
+    },
+    enabled: !!params.chatId,
+  });
+}
+
 export function useMessages(chatId: string) {
   return useQuery({
     queryKey: messageKeys.allWithChatId(chatId),

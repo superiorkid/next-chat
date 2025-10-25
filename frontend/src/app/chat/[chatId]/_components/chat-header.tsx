@@ -1,3 +1,5 @@
+"use client";
+
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,23 +16,43 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { usePartner } from "@/hooks/queries/chat";
+import { getInitial } from "@/lib/utils";
 import { EllipsisIcon, GithubIcon, PhoneIcon, VideoIcon } from "lucide-react";
 
-const ChatHeader = () => {
+interface ChatHeaderProps {
+  chatId: string;
+}
+
+const ChatHeader = ({ chatId }: ChatHeaderProps) => {
+  const { data: partner, isPending } = usePartner({ chatId });
+
+  if (isPending) {
+    return (
+      <div>
+        <p>Loading...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="flex justify-between items-center mt-5 pr-5">
       <div className="flex gap-2.5">
         <div className="relative">
           <Avatar className="size-10">
-            <AvatarImage src="https://github.com/shadcn.png" />
-            <AvatarFallback>CN</AvatarFallback>
+            <AvatarImage src={partner?.data?.image} />
+            <AvatarFallback className="uppercase">
+              {getInitial(partner?.data?.name || "unknown")}
+            </AvatarFallback>
           </Avatar>
           <span className="absolute -end-0.5 -bottom-0.5 size-3 rounded-full border-2 border-background bg-emerald-500">
             <span className="sr-only">Online</span>
           </span>
         </div>
         <div className="text-sm space-y-0.5">
-          <h1 className="font-semibold">Jacquenetta Slowgrave</h1>
+          <h1 className="font-semibold capitalize">
+            {partner?.data?.name || "Unknown"}
+          </h1>
           <p className="text-emerald-500">online</p>
         </div>
       </div>
@@ -78,12 +100,14 @@ const ChatHeader = () => {
               <div className="px-5 space-y-8">
                 <div className="flex items-center flex-col space-y-4">
                   <Avatar className="size-24">
-                    <AvatarImage src="https://github.com/shadcn.png" />
-                    <AvatarFallback>CN</AvatarFallback>
+                    <AvatarImage src={partner?.data?.image} />
+                    <AvatarFallback className="uppercase">
+                      {getInitial(partner?.data?.name || "unknown")}
+                    </AvatarFallback>
                   </Avatar>
                   <div className="text-center">
                     <h1 className="font-semibold text-xl">
-                      Jacquenetta Slowgrave
+                      {partner?.data?.name}
                     </h1>
                     <p className="text-sm">
                       Last seen:{" "}

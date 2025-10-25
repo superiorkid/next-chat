@@ -1,6 +1,10 @@
 export const chatKeys = {
   all: ["chats"] as const,
   allPartners: () => [...chatKeys.all, { mode: "partners" }] as const,
+  detailPartner: (chatId: string) => [
+    ...chatKeys.all,
+    { chatId, mode: "detail-partner" },
+  ],
 };
 
 export const messageKeys = {

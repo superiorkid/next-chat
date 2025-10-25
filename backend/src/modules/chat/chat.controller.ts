@@ -28,6 +28,12 @@ export class ChatController {
     return this.chatService.startConversation(currentUserId, recipientEmail);
   }
 
+  @Get(':chatId')
+  async getDetailPartner(@Req() req: Request, @Param('chatId') chatId: string) {
+    const currentUserId = req.user?.['sub'] as string;
+    return this.chatService.getDetailPartner({ chatId, currentUserId });
+  }
+
   @Get(':chatId/messages')
   async getMessages(
     @Req() req: Request,

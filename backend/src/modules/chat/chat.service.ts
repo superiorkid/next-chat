@@ -113,6 +113,62 @@ export class ChatService {
     }
   }
 
+  async getDetailPartner(params: { currentUserId: string; chatId: string }) {
+    const { chatId, currentUserId } = params;
+    try {
+      const participant = await this.databaseService.chatParticipant.findFirst({
+        where: { chatId, userId: currentUserId },
+        include: {
+          chat: {
+            include: {
+              participants: {
+                where: { NOT: { userId: currentUserId } },
+                include: {
+                  user: {
+                    select: {
+                      id: true,
+                      name: true,
+                      image: true,
+                      isOnline: true,
+                      lastSeen: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      });
+
+      if (!participant) throw new NotFoundException('Data not found');
+
+      const chat = participant?.chat;
+      const partner =
+        !chat?.isGroup && (chat?.participants.length || 0) > 0
+          ? chat?.participants.at(0)?.user
+          : null;
+
+      const result = {
+        chatId: chat?.id,
+        isGroup: chat?.isGroup,
+        name: chat?.isGroup ? chat.name : partner?.name,
+        image: chat?.isGroup ? chat.image : partner?.image,
+        partnerId: partner?.id,
+        isOnline: partner?.isOnline,
+        lastSeen: partner?.lastSeen,
+      };
+
+      return {
+        success: true,
+        message: '',
+        data: result,
+      };
+    } catch (error) {
+      const errorInfo = getErrorInfo(error);
+      throw new InternalServerErrorException(errorInfo.message);
+    }
+  }
+
   async startConversation(currentUserId: string, email: string) {
     try {
       const recipient = await this.databaseService.user.findUnique({
