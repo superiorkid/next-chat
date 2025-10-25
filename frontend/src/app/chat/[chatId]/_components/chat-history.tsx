@@ -4,12 +4,12 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
 import { useMessages } from "@/hooks/queries/chat";
+import { useSocketStore } from "@/providers/socket-store-provider";
 import { Message } from "@/types/global-type";
 import { MicIcon, PaperclipIcon, SmileIcon } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import ChatHeader from "./chat-header";
 import ChatMessage from "./chat-message";
-import { useSocketStore } from "@/providers/socket-store-provider";
 
 interface ChatComponentProps {
   chatId: string;
@@ -21,9 +21,11 @@ const ChatComponent = ({ chatId }: ChatComponentProps) => {
 
   const [messages, setMessages] = useState<Message[]>([]);
   const [message, setMessage] = useState("");
-  const scrollRef = useRef<HTMLDivElement | null>(null);
 
-  useEffect(() => {
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+
+  useLayoutEffect(() => {
     if (data?.data) {
       setMessages(data.data);
       scrollToBottom();
@@ -61,6 +63,7 @@ const ChatComponent = ({ chatId }: ChatComponentProps) => {
       content: message.trim(),
     });
     setMessage("");
+    textareaRef.current?.focus();
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -89,6 +92,7 @@ const ChatComponent = ({ chatId }: ChatComponentProps) => {
       <div className="py-4 border-t px-1 bg-background">
         <div className="relative">
           <Textarea
+            ref={textareaRef}
             placeholder="Enter message..."
             className="field-sizing-content max-h-40 min-h-14 resize-none py-1.75 pe-56"
             value={message}

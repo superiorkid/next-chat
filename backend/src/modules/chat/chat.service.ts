@@ -249,7 +249,7 @@ export class ChatService {
       },
       include: {
         sender: {
-          select: { id: true, name: true, image: true },
+          select: { id: true, name: true, image: true, email: true },
         },
       },
     });
