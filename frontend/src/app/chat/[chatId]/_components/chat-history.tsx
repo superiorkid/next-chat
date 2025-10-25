@@ -1,7 +1,6 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
 import { useMessages } from "@/hooks/queries/chat";
 import { useSocketStore } from "@/providers/socket-store-provider";
@@ -48,6 +47,7 @@ const ChatComponent = ({ chatId }: ChatComponentProps) => {
 
   const scrollToBottom = () => {
     if (scrollRef.current) {
+      console.log(scrollRef.current.scrollTop);
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   };
@@ -80,13 +80,13 @@ const ChatComponent = ({ chatId }: ChatComponentProps) => {
       <ChatHeader />
 
       <div className="flex-1 overflow-hidden mt-4">
-        <ScrollArea className="h-full pr-3.5" ref={scrollRef}>
+        <div ref={scrollRef} className="h-full pr-3.5 overflow-y-auto">
           <div className="space-y-1 p-4">
             {(messages || []).map((msg, index) => (
               <ChatMessage key={index} message={msg} />
             ))}
           </div>
-        </ScrollArea>
+        </div>
       </div>
 
       <div className="py-4 border-t px-1 bg-background">
