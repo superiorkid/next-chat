@@ -2,17 +2,19 @@ import { Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import {
+  ConnectedSocket,
   OnGatewayConnection,
   OnGatewayDisconnect,
   OnGatewayInit,
+  SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
 } from '@nestjs/websockets';
 import { Server } from 'socket.io';
 import { AuthWsMiddleware } from 'src/common/middlewares/auth-ws.middleware';
 import { PresenceService } from 'src/modules/presence/presence.service';
-import { AuthenticatedSocket } from '../types/authenticate-socket.type';
 import { DatabaseService } from 'src/shared/database/database.service';
+import { type AuthenticatedSocket } from '../types/authenticate-socket.type';
 
 @WebSocketGateway({ cors: { origin: '*' } })
 export abstract class WebsocketGateway
@@ -59,5 +61,11 @@ export abstract class WebsocketGateway
       userId: socket.user?.sub,
       lastSeen: new Date(),
     });
+  }
+
+  @SubscribeMessage('get_online_users')
+  handleGetOnlineUsers(@ConnectedSocket() socket: AuthenticatedSocket) {
+    const onlineUsers = this.presenceService.getOnlineUsers();
+    socket.emit('online_users', onlineUsers);
   }
 }

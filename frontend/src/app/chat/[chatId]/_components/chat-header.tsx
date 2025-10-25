@@ -17,7 +17,9 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { usePartner } from "@/hooks/queries/chat";
-import { getInitial } from "@/lib/utils";
+import { usePresence } from "@/hooks/use-presence";
+import { cn, getInitial } from "@/lib/utils";
+import { formatDistance } from "date-fns";
 import { EllipsisIcon, GithubIcon, PhoneIcon, VideoIcon } from "lucide-react";
 
 interface ChatHeaderProps {
@@ -26,6 +28,9 @@ interface ChatHeaderProps {
 
 const ChatHeader = ({ chatId }: ChatHeaderProps) => {
   const { data: partner, isPending } = usePartner({ chatId });
+  const { isOnline, lastSeen } = usePresence(
+    partner?.data?.partnerId as string
+  );
 
   if (isPending) {
     return (
@@ -45,15 +50,33 @@ const ChatHeader = ({ chatId }: ChatHeaderProps) => {
               {getInitial(partner?.data?.name || "unknown")}
             </AvatarFallback>
           </Avatar>
-          <span className="absolute -end-0.5 -bottom-0.5 size-3 rounded-full border-2 border-background bg-emerald-500">
-            <span className="sr-only">Online</span>
+          <span
+            className={cn(
+              "absolute -end-0.5 -bottom-0.5 size-3 rounded-full border-2 border-background bg-muted-foreground",
+              isOnline && "bg-emerald-500"
+            )}
+          >
+            <span className="sr-only">{isOnline ? "Online" : "Offline"}</span>
           </span>
         </div>
         <div className="text-sm space-y-0.5">
           <h1 className="font-semibold capitalize">
             {partner?.data?.name || "Unknown"}
           </h1>
-          <p className="text-emerald-500">online</p>
+          <p
+            className={cn(
+              "text-muted-foreground",
+              isOnline && "text-emerald-500"
+            )}
+          >
+            {isOnline
+              ? "online"
+              : `last seen ${formatDistance(
+                  new Date(lastSeen ?? (partner?.data?.lastSeen as Date)),
+                  new Date(),
+                  { addSuffix: true }
+                )}`}
+          </p>
         </div>
       </div>
       <div className="space-x-3 flex items-center">
@@ -111,8 +134,21 @@ const ChatHeader = ({ chatId }: ChatHeaderProps) => {
                     </h1>
                     <p className="text-sm">
                       Last seen:{" "}
-                      <span className="text-emerald-600 font-medium">
-                        Online
+                      <span
+                        className={cn(
+                          "font-medium text-muted-foreground",
+                          isOnline && "text-emerald-600"
+                        )}
+                      >
+                        {isOnline
+                          ? "Online"
+                          : formatDistance(
+                              new Date(
+                                lastSeen ?? (partner?.data?.lastSeen as Date)
+                              ),
+                              new Date(),
+                              { addSuffix: true }
+                            )}
                       </span>
                     </p>
                   </div>

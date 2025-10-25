@@ -101,7 +101,9 @@ const ChatComponent = ({ chatId }: ChatComponentProps) => {
               {Object.entries(groupedMessages).map(([date, msgs]) => (
                 <div key={date}>
                   <div className="text-center text-xs text-muted-foreground my-2 sticky top-0 font-medium">
-                    {format(new Date(date), "EEEE, MMM d yyyy")}
+                    <span className="bg-background px-2 py-1 rounded-md">
+                      {format(new Date(date), "EEEE, MMM d yyyy")}
+                    </span>
                   </div>
                   {msgs.map((msg, i) => {
                     const prev = msgs[i - 1];
