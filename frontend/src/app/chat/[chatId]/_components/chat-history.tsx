@@ -1,10 +1,13 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
 import { useMessages } from "@/hooks/queries/chat";
+import { groupMessagesByDate } from "@/lib/utils";
 import { useSocketStore } from "@/providers/socket-store-provider";
 import { Message } from "@/types/global-type";
+import { format } from "date-fns";
 import { MicIcon, PaperclipIcon, SmileIcon } from "lucide-react";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import ChatHeader from "./chat-header";
@@ -19,6 +22,8 @@ const ChatComponent = ({ chatId }: ChatComponentProps) => {
   const { data, isPending } = useMessages(chatId);
 
   const [messages, setMessages] = useState<Message[]>([]);
+  const groupedMessages = groupMessagesByDate(messages);
+
   const [message, setMessage] = useState("");
 
   const scrollRef = useRef<HTMLDivElement | null>(null);
@@ -73,23 +78,50 @@ const ChatComponent = ({ chatId }: ChatComponentProps) => {
     }
   };
 
-  if (isPending) return <p>Loading messages...</p>;
-
   return (
     <div className="flex flex-col h-dvh">
       <ChatHeader />
 
       <div className="flex-1 overflow-hidden mt-4">
         <div ref={scrollRef} className="h-full pr-3.5 overflow-y-auto">
-          <div className="space-y-1 p-4">
-            {(messages || []).map((msg, index) => (
-              <ChatMessage key={index} message={msg} />
-            ))}
-          </div>
+          {isPending ? (
+            <div className="flex justify-center items-center h-full">
+              <div className="space-y-2 flex flex-col items-center">
+                <Spinner className="size-5" />
+                <p className="text-muted-foreground text-sm">
+                  Loading Messages...
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {Object.entries(groupedMessages).map(([date, msgs]) => (
+                <div key={date}>
+                  <div className="text-center text-xs text-muted-foreground my-2">
+                    {format(new Date(date), "EEEE, MMM d yyyy")}
+                  </div>
+                  {msgs.map((msg, i) => {
+                    const prev = msgs[i - 1];
+                    const next = msgs[i + 1];
+                    const showAvatar =
+                      !next || next.sender?.id !== msg.sender?.id;
+
+                    return (
+                      <ChatMessage
+                        key={msg.id}
+                        message={msg}
+                        showAvatar={showAvatar}
+                      />
+                    );
+                  })}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
-      <div className="py-4 border-t px-1 bg-background">
+      <div className="py-4 px-1 bg-background">
         <div className="relative">
           <Textarea
             ref={textareaRef}

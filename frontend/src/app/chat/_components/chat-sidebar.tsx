@@ -7,7 +7,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { PlusIcon, SearchIcon } from "lucide-react";
-import LogoutButton from "./logout-button";
 import Partners from "./partners";
 
 const ChatSidebar = () => {
@@ -16,9 +15,6 @@ const ChatSidebar = () => {
       <div className="h-screen p-5">
         <div className="border h-full shadow-sm rounded-lg overflow-hidden">
           <div className="space-y-5 p-5">
-            <div>
-              <LogoutButton />
-            </div>
             <div className="flex justify-between items-center">
               <h3 className="text-2xl font-bold">Chats</h3>
               <DropdownMenu>
