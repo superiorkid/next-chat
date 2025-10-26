@@ -18,7 +18,7 @@ const ChatSidebar = () => {
             <div className="flex justify-between items-center">
               <h3 className="text-2xl font-bold">Chats</h3>
               <DropdownMenu>
-                <DropdownMenuTrigger>
+                <DropdownMenuTrigger asChild>
                   <Button
                     size="icon"
                     variant="outline"

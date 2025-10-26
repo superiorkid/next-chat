@@ -101,7 +101,7 @@ const ChatHeader = ({ chatId }: ChatHeaderProps) => {
 
         <Sheet>
           <DropdownMenu>
-            <DropdownMenuTrigger>
+            <DropdownMenuTrigger asChild>
               <Button
                 variant="ghost"
                 size="icon-sm"

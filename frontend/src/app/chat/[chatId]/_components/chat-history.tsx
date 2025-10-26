@@ -6,7 +6,7 @@ import { groupMessagesByDate } from "@/lib/utils";
 import { useSocketStore } from "@/providers/socket-store-provider";
 import { Message } from "@/types/global-type";
 import { format } from "date-fns";
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import ChatHeader from "./chat-header";
 import ChatMessage from "./chat-message";
 import MessageInput from "./message-input";
@@ -17,8 +17,8 @@ interface ChatComponentProps {
 
 const ChatComponent = ({ chatId }: ChatComponentProps) => {
   const socket = useSocketStore((store) => store.socket);
-  const { data } = useMessages(chatId);
-  const [isPending, setIsPending] = useState<boolean>(false);
+  const { data, isPending: isMessagesLoading } = useMessages(chatId);
+  const [isPending, setIsPending] = useState<boolean>(true);
 
   const [messages, setMessages] = useState<Message[]>([]);
   const groupedMessages = groupMessagesByDate(messages);
@@ -28,14 +28,15 @@ const ChatComponent = ({ chatId }: ChatComponentProps) => {
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
 
-  useLayoutEffect(() => {
-    setIsPending(true);
+  useEffect(() => {
+    // Only set pending to false when we actually have data
     if (data?.data) {
       setMessages(data.data);
-      scrollToBottom();
+      setIsPending(false);
     }
-    setIsPending(false);
   }, [data]);
+
+  const showLoading = isPending || isMessagesLoading;
 
   useEffect(() => {
     const handleNewMessage = (newMessage: Message) => {
@@ -85,7 +86,7 @@ const ChatComponent = ({ chatId }: ChatComponentProps) => {
 
       <div className="flex-1 overflow-hidden mt-4">
         <div ref={scrollRef} className="h-full pr-3.5 overflow-y-auto">
-          {isPending ? (
+          {showLoading ? (
             <div className="flex justify-center items-center h-full">
               <div className="space-y-2 flex flex-col items-center">
                 <Spinner className="size-5" />
