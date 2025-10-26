@@ -25,27 +25,8 @@ const ChatComponent = ({ chatId }: ChatComponentProps) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const groupedMessages = groupMessagesByDate(messages);
 
-  const [message, setMessage] = useState("");
-
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
-
-  const sendMessage = () => {
-    if (!message.trim()) return;
-    socket?.emit("chat:send_message", {
-      chatId,
-      content: message.trim(),
-    });
-    setMessage("");
-    textareaRef.current?.focus();
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      sendMessage();
-    }
-  };
 
   useEffect(() => {
     if (data?.data) {
@@ -97,13 +78,7 @@ const ChatComponent = ({ chatId }: ChatComponentProps) => {
         )}
       </MessagesContainer>
 
-      <MessageInput
-        message={message}
-        setMessage={setMessage}
-        sendMessage={sendMessage}
-        onKeyDown={handleKeyDown}
-        textareaRef={textareaRef}
-      />
+      <MessageInputContainer chatId={chatId} />
     </div>
   );
 };
@@ -182,4 +157,38 @@ const DateSeparator = ({ date }: DateSeparatorProps) => {
     </div>
   );
 };
+
+const MessageInputContainer = ({ chatId }: { chatId: string }) => {
+  const socket = useSocketStore((store) => store.socket);
+  const [message, setMessage] = useState("");
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+
+  const sendMessage = () => {
+    if (!message.trim()) return;
+    socket?.emit("chat:send_message", {
+      chatId,
+      content: message.trim(),
+    });
+    setMessage("");
+    textareaRef.current?.focus();
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  };
+
+  return (
+    <MessageInput
+      message={message}
+      setMessage={setMessage}
+      sendMessage={sendMessage}
+      onKeyDown={handleKeyDown}
+      textareaRef={textareaRef}
+    />
+  );
+};
+
 export default ChatComponent;

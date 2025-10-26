@@ -5,9 +5,8 @@ import { SocketInitializer } from "@/providers/socket-initializer";
 import { SocketStoreProvider } from "@/providers/socket-store-provider";
 import type { Metadata } from "next";
 import { Geist } from "next/font/google";
-import PresenceListener from "./chat/_components/presence-listener";
-import PresenceStoreProvider from "@/providers/presence-store-provider";
 
+import { ReactScan } from "@/components/react-scan";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -27,6 +26,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <script
+          crossOrigin="anonymous"
+          src="//unpkg.com/react-scan/dist/auto.global.js"
+        />
+      </head>
       <body
         className={cn(
           `antialiased bg-background min-h-screen`,
