@@ -5,6 +5,7 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
+import { MessageDeliveryStatus } from '@prisma/client';
 import { getErrorInfo } from 'src/lib/get-error-info';
 import { DatabaseService } from 'src/shared/database/database.service';
 import { SendMessageDto } from './dto/send-message.dto';
@@ -322,5 +323,56 @@ export class ChatService {
     });
 
     return message;
+  }
+
+  async getChatMembers(
+    chatId: string,
+    excludeUserId: string,
+  ): Promise<string[]> {
+    const chat = await this.databaseService.chat.findUnique({
+      where: { id: chatId },
+      include: { participants: true },
+    });
+
+    if (!chat) return [];
+
+    return chat.participants
+      .filter((p) => p.userId !== excludeUserId)
+      .map((p) => p.userId);
+  }
+
+  async markAsDelivered(messageId: string, userId: string) {
+    return this.databaseService.messageStatus.upsert({
+      where: {
+        messageId_userId: { messageId, userId },
+      },
+      update: {
+        status: MessageDeliveryStatus.DELIVERED,
+      },
+      create: {
+        messageId,
+        userId,
+        status: MessageDeliveryStatus.DELIVERED,
+      },
+    });
+  }
+
+  async markAsRead(messageId: string, userId: string) {
+    return this.databaseService.messageStatus.upsert({
+      where: {
+        messageId_userId: {
+          messageId,
+          userId,
+        },
+      },
+      update: {
+        status: MessageDeliveryStatus.READ,
+      },
+      create: {
+        messageId,
+        userId,
+        status: MessageDeliveryStatus.READ,
+      },
+    });
   }
 }

@@ -8,9 +8,9 @@ import {
 } from '@nestjs/websockets';
 import { WebsocketGateway } from 'src/common/abstracts/websocket.gateway';
 import { type AuthenticatedSocket } from 'src/common/types/authenticate-socket.type';
+import { DatabaseService } from 'src/shared/database/database.service';
 import { PresenceService } from '../presence/presence.service';
 import { ChatService } from './chat.service';
-import { DatabaseService } from 'src/shared/database/database.service';
 
 @WebSocketGateway({ cors: { origin: '*' } })
 export class ChatGateway extends WebsocketGateway {
@@ -52,5 +52,23 @@ export class ChatGateway extends WebsocketGateway {
     });
 
     this.server.to(data.chatId).emit('chat:new_message', message);
+
+    const partners = await this.chatService.getChatMembers(
+      data.chatId,
+      socket.user?.sub as string,
+    );
+
+    for (const userId of partners) {
+      const recipientSocketIds = this.presenceService.getSocketByUserId(userId);
+      if (recipientSocketIds.length > 0) {
+        await this.chatService.markAsDelivered(message.id, userId);
+        for (const socketId of recipientSocketIds) {
+          this.server.to(socketId).emit('chat:delivered', {
+            messageId: message.id,
+            chatId: data.chatId,
+          });
+        }
+      }
+    }
   }
 }

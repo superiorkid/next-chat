@@ -56,4 +56,9 @@ export class PresenceService {
   isUserOnline(userId: string): boolean {
     return this.userToSockets.has(userId);
   }
+
+  getSocketByUserId(userId: string): string[] {
+    const sockets = this.userToSockets.get(userId);
+    return sockets ? Array.from(sockets) : [];
+  }
 }
