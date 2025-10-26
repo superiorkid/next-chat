@@ -1,12 +1,13 @@
 "use client";
 
 import { Spinner } from "@/components/ui/spinner";
+import { useSession } from "@/hooks/queries/auth";
 import { useMessages } from "@/hooks/queries/chat";
 import { groupMessagesByDate } from "@/lib/utils";
 import { useSocketStore } from "@/providers/socket-store-provider";
 import { Message } from "@/types/global-type";
 import { format } from "date-fns";
-import { useEffect, useRef, useState } from "react";
+import { RefObject, useEffect, useRef, useState } from "react";
 import ChatHeader from "./chat-header";
 import ChatMessage from "./chat-message";
 import MessageInput from "./message-input";
@@ -18,6 +19,7 @@ interface ChatComponentProps {
 const ChatComponent = ({ chatId }: ChatComponentProps) => {
   const socket = useSocketStore((store) => store.socket);
   const { data, isPending: isMessagesLoading } = useMessages(chatId);
+  const { data: session } = useSession();
   const [isPending, setIsPending] = useState<boolean>(true);
 
   const [messages, setMessages] = useState<Message[]>([]);
@@ -29,7 +31,6 @@ const ChatComponent = ({ chatId }: ChatComponentProps) => {
   const scrollRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    // Only set pending to false when we actually have data
     if (data?.data) {
       setMessages(data.data);
       setIsPending(false);
@@ -42,7 +43,9 @@ const ChatComponent = ({ chatId }: ChatComponentProps) => {
     const handleNewMessage = (newMessage: Message) => {
       if (newMessage.chatId === chatId) {
         setMessages((prev) => [...prev, newMessage]);
-        scrollToBottom();
+        if (session?.data?.id === newMessage.senderId) {
+          scrollToBottom();
+        }
       }
     };
 
@@ -50,7 +53,7 @@ const ChatComponent = ({ chatId }: ChatComponentProps) => {
     return () => {
       socket?.off("chat:new_message", handleNewMessage);
     };
-  }, [chatId, socket]);
+  }, [chatId, socket, session?.data?.id]);
 
   const scrollToBottom = () => {
     if (scrollRef.current) {
@@ -61,7 +64,7 @@ const ChatComponent = ({ chatId }: ChatComponentProps) => {
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages]);
+  }, [data]);
 
   const sendMessage = () => {
     if (!message.trim()) return;
@@ -84,45 +87,13 @@ const ChatComponent = ({ chatId }: ChatComponentProps) => {
     <div className="flex flex-col h-dvh">
       <ChatHeader chatId={chatId} />
 
-      <div className="flex-1 overflow-hidden mt-4">
-        <div ref={scrollRef} className="h-full pr-3.5 overflow-y-auto">
-          {showLoading ? (
-            <div className="flex justify-center items-center h-full">
-              <div className="space-y-2 flex flex-col items-center">
-                <Spinner className="size-5" />
-                <p className="text-muted-foreground text-sm">
-                  Loading Messages...
-                </p>
-              </div>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {Object.entries(groupedMessages).map(([date, msgs]) => (
-                <div key={date}>
-                  <div className="text-center text-xs text-muted-foreground my-2 sticky top-0 font-medium">
-                    <span className="bg-background px-2 py-1 rounded-md">
-                      {format(new Date(date), "EEEE, MMM d yyyy")}
-                    </span>
-                  </div>
-                  {msgs.map((msg, i) => {
-                    const next = msgs[i + 1];
-                    const showAvatar =
-                      !next || next.sender?.id !== msg.sender?.id;
-
-                    return (
-                      <ChatMessage
-                        key={msg.id}
-                        message={msg}
-                        showAvatar={showAvatar}
-                      />
-                    );
-                  })}
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
+      <MessagesContainer scrollRef={scrollRef as RefObject<HTMLDivElement>}>
+        {showLoading ? (
+          <MessagesLoading />
+        ) : (
+          <MessagesList groupedMessages={groupedMessages} />
+        )}
+      </MessagesContainer>
 
       <MessageInput
         message={message}
@@ -135,4 +106,78 @@ const ChatComponent = ({ chatId }: ChatComponentProps) => {
   );
 };
 
+interface MessagesContainerProps {
+  children: React.ReactNode;
+  scrollRef: React.RefObject<HTMLDivElement>;
+}
+
+const MessagesContainer = ({ children, scrollRef }: MessagesContainerProps) => {
+  return (
+    <div className="flex-1 overflow-hidden mt-4">
+      <div ref={scrollRef} className="h-full pr-3.5 overflow-y-auto">
+        {children}
+      </div>
+    </div>
+  );
+};
+
+const MessagesLoading = () => {
+  return (
+    <div className="flex justify-center items-center h-full">
+      <div className="space-y-2 flex flex-col items-center">
+        <Spinner className="size-5" />
+        <p className="text-muted-foreground text-sm">Loading Messages...</p>
+      </div>
+    </div>
+  );
+};
+
+interface MessagesListProps {
+  groupedMessages: Record<string, Message[]>;
+}
+
+const MessagesList = ({ groupedMessages }: MessagesListProps) => {
+  return (
+    <div className="space-y-4">
+      {Object.entries(groupedMessages).map(([date, msgs]) => (
+        <MessageGroup key={date} date={date} messages={msgs} />
+      ))}
+    </div>
+  );
+};
+
+interface MessageGroupProps {
+  date: string;
+  messages: Message[];
+}
+
+const MessageGroup = ({ date, messages }: MessageGroupProps) => {
+  return (
+    <div>
+      <DateSeparator date={date} />
+      {messages.map((msg, i) => {
+        const next = messages[i + 1];
+        const showAvatar = !next || next.sender?.id !== msg.sender?.id;
+
+        return (
+          <ChatMessage key={msg.id} message={msg} showAvatar={showAvatar} />
+        );
+      })}
+    </div>
+  );
+};
+
+interface DateSeparatorProps {
+  date: string;
+}
+
+const DateSeparator = ({ date }: DateSeparatorProps) => {
+  return (
+    <div className="text-center text-xs text-muted-foreground my-2 sticky top-0 font-medium">
+      <span className="bg-background px-2 py-1 rounded-md">
+        {format(new Date(date), "EEEE, MMM d yyyy")}
+      </span>
+    </div>
+  );
+};
 export default ChatComponent;

@@ -2,7 +2,7 @@ import { createServerAxios } from "@/lib/axios/server";
 import { getQueryClient } from "@/lib/query-client";
 import { chatKeys, messageKeys } from "@/lib/query-keys";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
-import ChatComponent from "./_components/chat-history";
+import ChatComponent from "./_components/chat-component";
 import { TApiResponse } from "@/types/api-response-type";
 import { TPartner } from "@/types/partner-type";
 
