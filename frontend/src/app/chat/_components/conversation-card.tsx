@@ -2,10 +2,10 @@
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { cn, getInitial } from "@/lib/utils";
+import { cn, formatMessageTime, getInitial } from "@/lib/utils";
+import { useConversationStore } from "@/providers/conversation-store-provider";
 import { usePresenceStore } from "@/providers/presence-store-provider";
 import { TPartner } from "@/types/partner-type";
-import { formatDistance } from "date-fns";
 import Link from "next/link";
 
 interface ConversationCardProps {
@@ -13,9 +13,16 @@ interface ConversationCardProps {
 }
 
 const ConversationCard = ({ partner }: ConversationCardProps) => {
+  const lastMessage = useConversationStore(
+    (store) => store.lastMessages[partner.chatId]
+  );
+
   const isOnline = usePresenceStore((store) =>
     store.onlineUsers.includes(partner.partnerId as string)
   );
+
+  const messageContent = lastMessage?.content || partner.lastMessage.content;
+  const messageTime = lastMessage?.createdAt || partner.lastMessage.createdAt;
 
   return (
     <div className="text-sm px-5 py-4 hover:bg-zinc-200/70 cursor-pointer border-b last:border-b-0 relative">
@@ -42,16 +49,10 @@ const ConversationCard = ({ partner }: ConversationCardProps) => {
               {partner.name}
             </h3>
             <span className="text-xs font-medium text-muted-foreground text-nowrap">
-              {formatDistance(
-                new Date(partner.lastMessage.createdAt),
-                new Date(),
-                { addSuffix: true }
-              )}
+              {formatMessageTime(messageTime)}
             </span>
           </div>
-          <p className="line-clamp-1 text-muted-foreground">
-            {partner.lastMessage.content}
-          </p>
+          <p className="line-clamp-1 text-muted-foreground">{messageContent}</p>
         </div>
         <Badge className="size-6 rounded-full absolute top-1/2 -translate-y-1/2 right-3">
           3

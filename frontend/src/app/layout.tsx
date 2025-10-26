@@ -35,11 +35,8 @@ export default function RootLayout({
       >
         <QueryClientProvider>
           <SocketStoreProvider>
-            <PresenceStoreProvider>
-              <SocketInitializer />
-              <PresenceListener />
-              {children}
-            </PresenceStoreProvider>
+            <SocketInitializer />
+            {children}
           </SocketStoreProvider>
           <Toaster richColors expand />
         </QueryClientProvider>
