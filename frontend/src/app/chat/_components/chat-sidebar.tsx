@@ -21,18 +21,20 @@ import {
 import { Field, FieldDescription, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { useStartConversation } from "@/hooks/queries/chat";
-import { PlusIcon, SearchIcon } from "lucide-react";
+import { EllipsisIcon, SearchIcon } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
-import LogoutButton from "./logout-button";
 import Partners from "./partners";
+import { useLogoutMutation } from "@/hooks/queries/auth";
+import { useRouter } from "next/navigation";
+import { useSocketStore } from "@/providers/socket-store-provider";
+import { getQueryClient } from "@/lib/query-client";
 
 const ChatSidebar = () => {
   return (
     <div className="fixed left-0 top-0 z-40 h-screen w-[384px] -translate-x-full sm:translate-x-0">
       <div className="h-screen p-5">
         <div className="border h-full shadow-sm rounded-lg overflow-hidden space-y-1.5">
-          <LogoutButton />
           <ChatSidebarHeader />
           <div className="px-4">
             <SearchInput />
@@ -71,6 +73,18 @@ const SearchInput = () => {
 const NewChatDialog = () => {
   const [openDialog, setOpenDialog] = useState<boolean>(false);
 
+  const router = useRouter();
+  const disconnect = useSocketStore((store) => store.disconnect);
+  const queryClient = getQueryClient();
+
+  const { mutate } = useLogoutMutation({
+    onLogoutSuccess: () => {
+      disconnect();
+      queryClient.clear();
+      router.refresh();
+    },
+  });
+
   return (
     <Dialog open={openDialog} onOpenChange={setOpenDialog}>
       <DropdownMenu>
@@ -80,15 +94,15 @@ const NewChatDialog = () => {
             variant="outline"
             className="rounded-full cursor-pointer"
           >
-            <PlusIcon strokeWidth={2} />
-            <span className="sr-only">New chat options</span>
+            <EllipsisIcon strokeWidth={2} />
+            <span className="sr-only">chat options</span>
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           <DialogTrigger asChild>
             <DropdownMenuItem>New chat</DropdownMenuItem>
           </DialogTrigger>
-          <DropdownMenuItem>Create group</DropdownMenuItem>
+          <DropdownMenuItem onClick={() => mutate()}>Log Out</DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
       <NewChatDialogContent

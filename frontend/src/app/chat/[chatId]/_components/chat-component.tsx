@@ -41,9 +41,7 @@ const ChatComponent = ({ chatId }: ChatComponentProps) => {
     const handleNewMessage = (newMessage: Message) => {
       if (newMessage.chatId === chatId) {
         setMessages((prev) => [...prev, newMessage]);
-        if (session?.data?.id === newMessage.senderId) {
-          scrollToBottom();
-        }
+        scrollToBottom();
       }
     };
 

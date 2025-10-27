@@ -6,6 +6,7 @@ import { cn, formatMessageTime, getInitial } from "@/lib/utils";
 import { useConversationStore } from "@/providers/conversation-store-provider";
 import { usePresenceStore } from "@/providers/presence-store-provider";
 import { TPartner } from "@/types/partner-type";
+import { ChevronRightIcon, MessageSquareTextIcon } from "lucide-react";
 import Link from "next/link";
 
 interface ConversationCardProps {
@@ -26,6 +27,9 @@ const ConversationCard = ({ partner }: ConversationCardProps) => {
   const messageTime =
     lastMessage?.createdAt || partner.lastMessage?.createdAt || new Date();
 
+  const hasMessages = messageContent.length > 0;
+  const isNewConversation = !hasMessages;
+
   return (
     <div className="text-sm px-5 py-4 hover:bg-zinc-200/70 cursor-pointer border-b last:border-b-0 relative">
       <Link href={`/chat/${partner.chatId}`} className="flex gap-2.5">
@@ -45,20 +49,38 @@ const ConversationCard = ({ partner }: ConversationCardProps) => {
             <span className="sr-only">{isOnline ? "Online" : "Offline"}</span>
           </span>
         </div>
+
         <div className="space-y-0.5 w-full">
           <div className="flex items-center justify-between">
             <h3 className="font-medium line-clamp-1 capitalize">
               {partner.name}
             </h3>
-            <span className="text-xs font-medium text-muted-foreground text-nowrap">
-              {formatMessageTime(messageTime)}
-            </span>
+            {!isNewConversation && (
+              <span className="text-xs font-medium text-muted-foreground text-nowrap">
+                {formatMessageTime(messageTime)}
+              </span>
+            )}
           </div>
-          <p className="line-clamp-1 text-muted-foreground">{messageContent}</p>
+
+          {isNewConversation ? (
+            <div className="flex items-center justify-between w-full">
+              <p className="text-xs text-muted-foreground italic">
+                No messages yet
+              </p>
+              <ChevronRightIcon size={16} className="text-muted-foreground" />
+            </div>
+          ) : (
+            <p className="line-clamp-1 text-muted-foreground">
+              {messageContent}
+            </p>
+          )}
         </div>
-        <Badge className="size-6 rounded-full absolute top-1/2 -translate-y-1/2 right-3">
-          3
-        </Badge>
+
+        {!isNewConversation && (
+          <Badge className="size-6 rounded-full absolute top-1/2 -translate-y-1/2 right-3">
+            3
+          </Badge>
+        )}
       </Link>
     </div>
   );
