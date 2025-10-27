@@ -10,9 +10,11 @@ import {
   FieldSeparator,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { useRegisterMutation } from "@/hooks/queries/auth";
 import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Controller, useForm } from "react-hook-form";
 import { signUpSchema, TSignUpSchema } from "../sign-up-schema";
 
@@ -20,18 +22,22 @@ export function SignupForm({
   className,
   ...props
 }: React.ComponentProps<"form">) {
+  const router = useRouter();
   const form = useForm<TSignUpSchema>({
     resolver: zodResolver(signUpSchema),
     defaultValues: {
-      fullName: "",
+      name: "",
       email: "",
       password: "",
       confirmPassword: "",
     },
   });
 
+  const { mutate, isPending } = useRegisterMutation({
+    onRegisterSuccess: () => router.push("/auth/sign-in"),
+  });
   const onSubmit = (values: TSignUpSchema) => {
-    console.log(values);
+    mutate(values);
   };
 
   return (
@@ -48,7 +54,8 @@ export function SignupForm({
           </p>
         </div>
         <Controller
-          name="fullName"
+          name="name"
+          disabled={isPending}
           control={form.control}
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
@@ -69,6 +76,7 @@ export function SignupForm({
         <Controller
           name="email"
           control={form.control}
+          disabled={isPending}
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
               <FieldLabel htmlFor="email">Email</FieldLabel>
@@ -92,6 +100,7 @@ export function SignupForm({
         <Controller
           name="password"
           control={form.control}
+          disabled={isPending}
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
               <FieldLabel htmlFor="password">Password</FieldLabel>
@@ -113,6 +122,7 @@ export function SignupForm({
         <Controller
           name="confirmPassword"
           control={form.control}
+          disabled={isPending}
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
               <FieldLabel htmlFor="password">Confirm Password</FieldLabel>
@@ -130,7 +140,9 @@ export function SignupForm({
         />
 
         <Field>
-          <Button type="submit">Create Account</Button>
+          <Button disabled={isPending} type="submit">
+            Create Account
+          </Button>
         </Field>
         <FieldSeparator>Or continue with</FieldSeparator>
         <Field>

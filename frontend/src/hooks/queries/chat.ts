@@ -1,9 +1,10 @@
 import { clientAxios } from "@/lib/axios/client";
 import { chatKeys, messageKeys } from "@/lib/query-keys";
 import { TApiResponse } from "@/types/api-response-type";
-import { Message } from "@/types/global-type";
+import { Chat, Message } from "@/types/global-type";
 import { TPartner } from "@/types/partner-type";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 export function usePartners() {
   return useQuery({
@@ -38,5 +39,32 @@ export function useMessages(chatId: string) {
       return res.data;
     },
     enabled: !!chatId,
+  });
+}
+
+export function useStartConversation(props?: { onSuccess?: () => void }) {
+  const { onSuccess } = props || {};
+
+  return useMutation({
+    mutationFn: async (email: string) => {
+      const res = await clientAxios.post<TApiResponse<Chat>>(
+        "/v1/chats/start",
+        { email }
+      );
+      return res.data;
+    },
+    onError: () => {
+      toast.error("Failed to start conversation", {
+        description: "Please check the email and try again.",
+      });
+    },
+    onSuccess: (data, variables, onMutateResult, context) => {
+      context.client.invalidateQueries({ queryKey: chatKeys.all });
+      toast.success("Conversation started", {
+        description: "You have successfully started a new chat.",
+      });
+      onSuccess?.();
+      window.location.href = `/chat/${data.data?.id}`;
+    },
   });
 }

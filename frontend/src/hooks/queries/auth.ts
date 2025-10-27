@@ -1,10 +1,11 @@
 import { TLoginSchema } from "@/app/auth/sign-in/login-schema";
+import { TSignUpSchema } from "@/app/auth/sign-up/sign-up-schema";
 import { clientAxios } from "@/lib/axios/client";
+import { User } from "@/types/global-type";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { AxiosError } from "axios";
 import { toast } from "sonner";
 import { TApiResponse } from "../../types/api-response-type";
-import { User } from "@/types/global-type";
 
 export function useLoginMutation(props?: { onLoginSuccess: () => void }) {
   const { onLoginSuccess } = props || {};
@@ -28,6 +29,33 @@ export function useLoginMutation(props?: { onLoginSuccess: () => void }) {
         description: "You have been logged in successfully.",
       });
       onLoginSuccess?.();
+    },
+  });
+}
+
+export function useRegisterMutation(props?: { onRegisterSuccess: () => void }) {
+  const { onRegisterSuccess } = props || {};
+
+  return useMutation({
+    mutationFn: async (data: TSignUpSchema) => {
+      const res = await clientAxios.post<TApiResponse>(
+        "/v1/auth/register",
+        data
+      );
+      return res.data;
+    },
+    onError(error: AxiosError) {
+      toast.error("Register failed", {
+        description:
+          (error.response?.data as { message: string }).message ||
+          "Please check your credentials and try again.",
+      });
+    },
+    onSuccess() {
+      toast.success("Register successful", {
+        description: "You have been register successfully.",
+      });
+      onRegisterSuccess?.();
     },
   });
 }

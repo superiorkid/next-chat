@@ -21,8 +21,10 @@ const ConversationCard = ({ partner }: ConversationCardProps) => {
     store.onlineUsers.includes(partner.partnerId as string)
   );
 
-  const messageContent = lastMessage?.content || partner.lastMessage.content;
-  const messageTime = lastMessage?.createdAt || partner.lastMessage.createdAt;
+  const messageContent =
+    lastMessage?.content || partner.lastMessage?.content || "";
+  const messageTime =
+    lastMessage?.createdAt || partner.lastMessage?.createdAt || new Date();
 
   return (
     <div className="text-sm px-5 py-4 hover:bg-zinc-200/70 cursor-pointer border-b last:border-b-0 relative">
