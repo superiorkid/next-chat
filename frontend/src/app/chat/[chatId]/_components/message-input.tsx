@@ -33,7 +33,7 @@ const MessageInput = ({
         />
         <div className="absolute right-3 bottom-3">
           <div className="flex items-center space-x-2.5">
-            <Button variant="outline" size="icon-sm">
+            {/* <Button variant="outline" size="icon-sm">
               <SmileIcon />
             </Button>
             <Button variant="outline" size="icon-sm">
@@ -41,7 +41,7 @@ const MessageInput = ({
             </Button>
             <Button variant="outline" size="icon-sm">
               <MicIcon />
-            </Button>
+            </Button> */}
             <Button
               variant="outline"
               size="sm"
